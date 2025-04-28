@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/use-toast';
-import { Banknote, Edit, Trash2, Plus, Loader2 } from 'lucide-react';
+import { User, Edit, Trash2, Plus, Loader2, Eye, EyeOff } from 'lucide-react';
 import { apiService } from '@/services/api';
 import {
   Table,
@@ -32,12 +32,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Select } from '@/components/ui/select';
 
-interface BankAccount {
+interface AccountLogin {
   id: string;
-  account_no: string;
-  account_holder: string;
-  bank_name: string;
+  username: string;
+  password: string;
+  token: string | null;
   site_id: string;
   status: string;
   created_at: string;
@@ -50,26 +51,27 @@ interface Site {
   site_id: string;
 }
 
-const BankAccounts = () => {
-  const [accounts, setAccounts] = useState<BankAccount[]>([]);
+const AccountLogins = () => {
+  const [accountLogins, setAccountLogins] = useState<AccountLogin[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentAccount, setCurrentAccount] = useState<Partial<BankAccount> | null>(null);
+  const [currentAccountLogin, setCurrentAccountLogin] = useState<Partial<AccountLogin> | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [accountsRes, sitesRes] = await Promise.all([
-          apiService.getBankAccounts(),
+        const [accountLoginsRes, sitesRes] = await Promise.all([
+          apiService.getAccountLogins(),
           apiService.getSites()
         ]);
         
-        setAccounts(accountsRes.accounts || []);
+        setAccountLogins(accountLoginsRes.accountLogins || []);
         setSites(sitesRes.sites || []);
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -86,25 +88,31 @@ const BankAccounts = () => {
     fetchData();
   }, []);
 
-  const handleAddAccount = () => {
-    setCurrentAccount({
-      account_no: '',
-      account_holder: '',
-      bank_name: '',
+  const handleAddAccountLogin = () => {
+    setCurrentAccountLogin({
+      username: '',
+      password: '',
+      token: '',
       site_id: sites[0]?.site_id || '',
       status: 'active'
     });
     setIsDialogOpen(true);
+    setShowPassword(true);
   };
 
-  const handleEditAccount = (account: BankAccount) => {
-    setCurrentAccount({ ...account });
+  const handleEditAccountLogin = (accountLogin: AccountLogin) => {
+    setCurrentAccountLogin({ ...accountLogin, password: '********' });
     setIsDialogOpen(true);
+    setShowPassword(false);
   };
 
-  const handleDeleteAccount = (account: BankAccount) => {
-    setCurrentAccount(account);
+  const handleDeleteAccountLogin = (accountLogin: AccountLogin) => {
+    setCurrentAccountLogin(accountLogin);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   const getSiteNameById = (siteId: string) => {
@@ -112,97 +120,105 @@ const BankAccounts = () => {
     return site ? site.site_name : siteId;
   };
 
-  const handleSaveAccount = async () => {
-    if (!currentAccount || !currentAccount.account_no || !currentAccount.account_holder || !currentAccount.bank_name || !currentAccount.site_id) {
+  const handleSaveAccountLogin = async () => {
+    if (!currentAccountLogin || !currentAccountLogin.username || !currentAccountLogin.site_id) {
       toast({ 
         title: "Error", 
-        description: "All fields are required", 
+        description: "Username and Site are required", 
         variant: "destructive" 
       });
       return;
     }
 
     try {
-      if (currentAccount.id) {
-        // Update existing account
-        const { account } = await apiService.updateBankAccount(currentAccount.id, {
-          account_no: currentAccount.account_no,
-          account_holder: currentAccount.account_holder,
-          bank_name: currentAccount.bank_name,
-          site_id: currentAccount.site_id,
-          status: currentAccount.status
-        });
+      if (currentAccountLogin.id) {
+        // Update existing account login
+        const updateData: any = {
+          username: currentAccountLogin.username,
+          site_id: currentAccountLogin.site_id,
+          status: currentAccountLogin.status
+        };
         
-        if (account) {
-          setAccounts(accounts.map(a => a.id === account.id ? account : a));
-          toast({ title: "Bank account updated successfully" });
+        // Only update password if it was changed (not still masked)
+        if (currentAccountLogin.password && currentAccountLogin.password !== '********') {
+          updateData.password = currentAccountLogin.password;
+        }
+        
+        if (currentAccountLogin.token) {
+          updateData.token = currentAccountLogin.token;
+        }
+        
+        const { accountLogin } = await apiService.updateAccountLogin(currentAccountLogin.id, updateData);
+        
+        if (accountLogin) {
+          setAccountLogins(accountLogins.map(l => l.id === accountLogin.id ? {...accountLogin, password: '********'} : l));
+          toast({ title: "Account login updated successfully" });
         }
       } else {
-        // Add new account
-        const { account } = await apiService.createBankAccount({
-          account_no: currentAccount.account_no,
-          account_holder: currentAccount.account_holder,
-          bank_name: currentAccount.bank_name,
-          site_id: currentAccount.site_id,
-          status: currentAccount.status || 'active'
+        // Add new account login
+        const { accountLogin } = await apiService.createAccountLogin({
+          username: currentAccountLogin.username,
+          password: currentAccountLogin.password || '',
+          token: currentAccountLogin.token || '',
+          site_id: currentAccountLogin.site_id,
+          status: currentAccountLogin.status
         });
         
-        if (account) {
-          setAccounts([...accounts, account]);
-          toast({ title: "Bank account added successfully" });
+        if (accountLogin) {
+          setAccountLogins([...accountLogins, {...accountLogin, password: '********'}]);
+          toast({ title: "Account login added successfully" });
         }
       }
       setIsDialogOpen(false);
     } catch (error) {
-      console.error('Error saving bank account:', error);
+      console.error('Error saving account login:', error);
       toast({ 
         title: "Error", 
-        description: "Failed to save bank account", 
+        description: "Failed to save account login", 
         variant: "destructive" 
       });
     }
   };
 
   const confirmDelete = async () => {
-    if (!currentAccount?.id) return;
+    if (!currentAccountLogin?.id) return;
     
     try {
-      await apiService.deleteBankAccount(currentAccount.id);
-      setAccounts(accounts.filter(account => account.id !== currentAccount.id));
+      await apiService.deleteAccountLogin(currentAccountLogin.id);
+      setAccountLogins(accountLogins.filter(login => login.id !== currentAccountLogin.id));
       setIsDeleteDialogOpen(false);
-      toast({ title: "Bank account deleted successfully" });
+      toast({ title: "Account login deleted successfully" });
     } catch (error) {
-      console.error('Error deleting bank account:', error);
+      console.error('Error deleting account login:', error);
       toast({ 
         title: "Error", 
-        description: "Failed to delete bank account", 
+        description: "Failed to delete account login", 
         variant: "destructive" 
       });
     }
   };
 
-  const filteredAccounts = accounts.filter(account => 
-    (account.account_holder.toLowerCase()).includes(searchTerm.toLowerCase()) ||
-    (account.bank_name.toLowerCase()).includes(searchTerm.toLowerCase()) ||
-    account.account_no.includes(searchTerm)
+  const filteredAccountLogins = accountLogins.filter(login => 
+    login.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    getSiteNameById(login.site_id).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Bank Accounts</h2>
-          <p className="text-muted-foreground">Manage bank accounts for your sites.</p>
+          <h2 className="text-3xl font-bold tracking-tight">Account Logins</h2>
+          <p className="text-muted-foreground">Manage login credentials for your sites.</p>
         </div>
-        <Button onClick={handleAddAccount}>
+        <Button onClick={handleAddAccountLogin}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Bank Account
+          Add Account Login
         </Button>
       </div>
 
       <div className="flex items-center py-4">
         <Input
-          placeholder="Search bank accounts..."
+          placeholder="Search account logins..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
@@ -217,33 +233,31 @@ const BankAccounts = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Account Number</TableHead>
-              <TableHead>Account Holder</TableHead>
-              <TableHead>Bank Name</TableHead>
+              <TableHead>Username</TableHead>
               <TableHead>Site</TableHead>
+              <TableHead>Token</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAccounts.length === 0 ? (
+            {filteredAccountLogins.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  No bank accounts found
+                <TableCell colSpan={5} className="h-24 text-center">
+                  No account logins found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredAccounts.map((account) => (
-                <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.account_no}</TableCell>
-                  <TableCell>{account.account_holder}</TableCell>
-                  <TableCell>{account.bank_name}</TableCell>
-                  <TableCell>{getSiteNameById(account.site_id)}</TableCell>
+              filteredAccountLogins.map((login) => (
+                <TableRow key={login.id}>
+                  <TableCell className="font-medium">{login.username}</TableCell>
+                  <TableCell>{getSiteNameById(login.site_id)}</TableCell>
+                  <TableCell>{login.token ? "Yes" : "No"}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      account.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      login.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {account.status}
+                      {login.status}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -251,7 +265,7 @@ const BankAccounts = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEditAccount(account)}
+                        onClick={() => handleEditAccountLogin(login)}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -259,7 +273,7 @@ const BankAccounts = () => {
                         variant="outline"
                         size="sm"
                         className="text-destructive"
-                        onClick={() => handleDeleteAccount(account)}
+                        onClick={() => handleDeleteAccountLogin(login)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -276,46 +290,58 @@ const BankAccounts = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {currentAccount?.id ? 'Edit Bank Account' : 'Add Bank Account'}
+              {currentAccountLogin?.id ? 'Edit Account Login' : 'Add Account Login'}
             </DialogTitle>
             <DialogDescription>
-              {currentAccount?.id 
-                ? 'Update the bank account details below.' 
-                : 'Fill in the bank account details below to create a new record.'}
+              {currentAccountLogin?.id 
+                ? 'Update the account login details below.' 
+                : 'Fill in the account login details below to create a new credential.'}
             </DialogDescription>
           </DialogHeader>
-          {currentAccount && (
+          {currentAccountLogin && (
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="account_no" className="text-right">
-                  Account Number
+                <Label htmlFor="username" className="text-right">
+                  Username
                 </Label>
                 <Input
-                  id="account_no"
-                  value={currentAccount.account_no || ''}
-                  onChange={(e) => setCurrentAccount({ ...currentAccount, account_no: e.target.value })}
+                  id="username"
+                  value={currentAccountLogin.username || ''}
+                  onChange={(e) => setCurrentAccountLogin({ ...currentAccountLogin, username: e.target.value })}
                   className="col-span-3"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="account_holder" className="text-right">
-                  Account Holder
+                <Label htmlFor="password" className="text-right">
+                  Password
                 </Label>
-                <Input
-                  id="account_holder"
-                  value={currentAccount.account_holder || ''}
-                  onChange={(e) => setCurrentAccount({ ...currentAccount, account_holder: e.target.value })}
-                  className="col-span-3"
-                />
+                <div className="col-span-3 relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={currentAccountLogin.password || ''}
+                    onChange={(e) => setCurrentAccountLogin({ ...currentAccountLogin, password: e.target.value })}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full"
+                    onClick={handleTogglePasswordVisibility}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="bank_name" className="text-right">
-                  Bank Name
+                <Label htmlFor="token" className="text-right">
+                  Token
                 </Label>
                 <Input
-                  id="bank_name"
-                  value={currentAccount.bank_name || ''}
-                  onChange={(e) => setCurrentAccount({ ...currentAccount, bank_name: e.target.value })}
+                  id="token"
+                  value={currentAccountLogin.token || ''}
+                  onChange={(e) => setCurrentAccountLogin({ ...currentAccountLogin, token: e.target.value })}
                   className="col-span-3"
                 />
               </div>
@@ -325,8 +351,8 @@ const BankAccounts = () => {
                 </Label>
                 <select
                   id="site_id"
-                  value={currentAccount.site_id || ''}
-                  onChange={(e) => setCurrentAccount({ ...currentAccount, site_id: e.target.value })}
+                  value={currentAccountLogin.site_id || ''}
+                  onChange={(e) => setCurrentAccountLogin({ ...currentAccountLogin, site_id: e.target.value })}
                   className="col-span-3 px-3 py-2 bg-background border border-input rounded-md"
                 >
                   {sites.map((site) => (
@@ -342,8 +368,8 @@ const BankAccounts = () => {
                 </Label>
                 <select
                   id="status"
-                  value={currentAccount.status || 'active'}
-                  onChange={(e) => setCurrentAccount({ ...currentAccount, status: e.target.value })}
+                  value={currentAccountLogin.status || 'active'}
+                  onChange={(e) => setCurrentAccountLogin({ ...currentAccountLogin, status: e.target.value })}
                   className="col-span-3 px-3 py-2 bg-background border border-input rounded-md"
                 >
                   <option value="active">Active</option>
@@ -356,7 +382,7 @@ const BankAccounts = () => {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveAccount}>Save</Button>
+            <Button onClick={handleSaveAccountLogin}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -366,8 +392,8 @@ const BankAccounts = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the bank account
-              for {currentAccount?.account_holder}.
+              This action cannot be undone. This will permanently delete the login credentials
+              for "{currentAccountLogin?.username}".
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -382,4 +408,4 @@ const BankAccounts = () => {
   );
 };
 
-export default BankAccounts;
+export default AccountLogins;

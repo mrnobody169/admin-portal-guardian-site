@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -53,6 +52,96 @@ class ApiService {
       method: "POST",
       headers,
       body: JSON.stringify(accountData),
+    });
+    return response.json();
+  }
+
+  // Sites API
+  async getSites() {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/sites`, { headers });
+    return response.json();
+  }
+
+  async getSite(id: string) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/sites/${id}`, { headers });
+    return response.json();
+  }
+
+  async createSite(siteData: { site_name: string; site_id: string; status?: string }) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/sites`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(siteData),
+    });
+    return response.json();
+  }
+
+  async updateSite(id: string, siteData: { site_name?: string; site_id?: string; status?: string }) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/sites/${id}`, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(siteData),
+    });
+    return response.json();
+  }
+
+  async deleteSite(id: string) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/sites/${id}`, {
+      method: "DELETE",
+      headers,
+    });
+    return response.json();
+  }
+
+  // Account Logins API
+  async getAccountLogins() {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/account-logins`, { headers });
+    return response.json();
+  }
+
+  async getAccountLogin(id: string) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/account-logins/${id}`, { headers });
+    return response.json();
+  }
+
+  async getAccountLoginsBySite(siteId: string) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/account-logins/site/${siteId}`, { headers });
+    return response.json();
+  }
+
+  async createAccountLogin(loginData: { username: string; password: string; token?: string; site_id: string; status?: string }) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/account-logins`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(loginData),
+    });
+    return response.json();
+  }
+
+  async updateAccountLogin(id: string, loginData: { username?: string; password?: string; token?: string; site_id?: string; status?: string }) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/account-logins/${id}`, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(loginData),
+    });
+    return response.json();
+  }
+
+  async deleteAccountLogin(id: string) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/account-logins/${id}`, {
+      method: "DELETE",
+      headers,
     });
     return response.json();
   }

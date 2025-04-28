@@ -1,67 +1,37 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
-import DashboardLayout from "./components/layout/DashboardLayout";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Users from "./pages/Users";
-import BankAccounts from "./pages/BankAccounts";
-import Logs from "./pages/Logs";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { Dashboard } from '@/pages/Dashboard';
+import { NotFound } from '@/pages/NotFound';
+import { Login } from '@/pages/Login';
+import { Index } from '@/pages/Index';
+import BankAccounts from '@/pages/BankAccounts';
+import Sites from '@/pages/Sites';
+import AccountLogins from '@/pages/AccountLogins';
+import Users from '@/pages/Users';
+import Logs from '@/pages/Logs';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import './App.css';
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+function App() {
+  return (
+    <>
+      <Router>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
-          
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <Dashboard />
-              </DashboardLayout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/users" element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <Users />
-              </DashboardLayout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/bank-accounts" element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <BankAccounts />
-              </DashboardLayout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/logs" element={
-            <ProtectedRoute>
-              <DashboardLayout>
-                <Logs />
-              </DashboardLayout>
-            </ProtectedRoute>
-          } />
-          
+          <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
+          <Route path="/users" element={<DashboardLayout><Users /></DashboardLayout>} />
+          <Route path="/bank-accounts" element={<DashboardLayout><BankAccounts /></DashboardLayout>} />
+          <Route path="/sites" element={<DashboardLayout><Sites /></DashboardLayout>} />
+          <Route path="/account-logins" element={<DashboardLayout><AccountLogins /></DashboardLayout>} />
+          <Route path="/logs" element={<DashboardLayout><Logs /></DashboardLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </Router>
+      <Toaster />
+    </>
+  );
+}
 
 export default App;
