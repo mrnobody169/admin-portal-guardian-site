@@ -1,5 +1,6 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
+import { User } from './User';
 
 /**
  * @swagger
@@ -57,4 +58,7 @@ export class Log {
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;
+
+  @ManyToOne(() => User, user => user.logs)
+  user: User;
 }

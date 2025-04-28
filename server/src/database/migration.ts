@@ -49,10 +49,12 @@ export const runMigrations = async () => {
         account_holder TEXT NOT NULL,
         bank_name TEXT NOT NULL,
         site_id TEXT NOT NULL,
+        user_id UUID,
         status TEXT NOT NULL DEFAULT 'active',
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
+        FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       );
     `);
     
@@ -92,13 +94,15 @@ export const runMigrations = async () => {
         entity_id UUID,
         user_id UUID,
         details JSONB,
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       );
     `);
     
     // Create indexes for faster lookups
     await queryRunner.query(`
       CREATE INDEX IF NOT EXISTS idx_bank_accounts_site_id ON bank_accounts(site_id);
+      CREATE INDEX IF NOT EXISTS idx_bank_accounts_user_id ON bank_accounts(user_id);
       CREATE INDEX IF NOT EXISTS idx_account_logins_site_id ON account_logins(site_id);
       CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);
       CREATE INDEX IF NOT EXISTS idx_logs_entity ON logs(entity);
