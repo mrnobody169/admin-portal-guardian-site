@@ -1,60 +1,62 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { apiService } from '@/services/api';
+import { Tables } from '@/integrations/supabase/types';
+import { Loader2 } from 'lucide-react';
 
-interface LogEntry {
-  id: string;
-  timestamp: string;
-  level: 'info' | 'warning' | 'error';
-  message: string;
-  source: string;
-  user: string;
+interface LogEntry extends Tables<'logs'> {
+  timestamp?: string;
+  level?: 'info' | 'warning' | 'error';
+  source?: string;
+  message?: string;
 }
 
-const generateLogs = (): LogEntry[] => {
-  const logs: LogEntry[] = [];
-  const levels = ['info', 'warning', 'error'] as const;
-  const sources = ['api', 'database', 'authentication', 'system'];
-  const users = ['admin', 'john.doe', 'jane.smith', 'system'];
-  const messages = [
-    'User login successful',
-    'Failed login attempt',
-    'Database connection error',
-    'API request completed',
-    'Password reset requested',
-    'Data export initiated',
-    'System update completed',
-    'Configuration changed',
-    'New user account created',
-    'User permissions updated',
-  ];
-
-  // Generate random logs
-  for (let i = 0; i < 100; i++) {
-    const date = new Date();
-    date.setMinutes(date.getMinutes() - Math.floor(Math.random() * 60 * 24)); // Random time in the last 24 hours
-    
-    logs.push({
-      id: i.toString(),
-      timestamp: date.toISOString(),
-      level: levels[Math.floor(Math.random() * levels.length)],
-      message: messages[Math.floor(Math.random() * messages.length)],
-      source: sources[Math.floor(Math.random() * sources.length)],
-      user: users[Math.floor(Math.random() * users.length)],
-    });
-  }
-
-  // Sort by timestamp, newest first
-  return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-};
-
 const Logs = () => {
-  const [logs] = useState<LogEntry[]>(generateLogs());
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        setIsLoading(true);
+        const { logs } = await apiService.getLogs();
+        
+        // Map the logs from the API to match our UI expectations
+        const formattedLogs = (logs || []).map((log: LogEntry) => ({
+          ...log,
+          timestamp: log.created_at,
+          level: mapActionToLevel(log.action),
+          source: log.entity,
+          message: log.details ? JSON.stringify(log.details) : log.action
+        }));
+        
+        setLogs(formattedLogs);
+      } catch (error) {
+        console.error('Failed to fetch logs:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLogs();
+  }, []);
+  
+  // Map action to level for display purposes
+  const mapActionToLevel = (action: string): 'info' | 'warning' | 'error' => {
+    if (action.includes('error') || action.includes('failed') || action.includes('delete')) {
+      return 'error';
+    }
+    if (action.includes('warning') || action.includes('update')) {
+      return 'warning';
+    }
+    return 'info';
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -76,9 +78,9 @@ const Logs = () => {
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = 
-      log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.user.toLowerCase().includes(searchTerm.toLowerCase());
+      (log.message?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (log.source?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (log.entity?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     
     const matchesLevel = levelFilter === 'all' || log.level === levelFilter;
     

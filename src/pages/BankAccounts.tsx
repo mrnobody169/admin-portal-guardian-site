@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,30 +22,60 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/use-toast';
-import { Edit, Trash, Plus } from 'lucide-react';
+import { Edit, Trash, Plus, Loader2 } from 'lucide-react';
+import { apiService } from '@/services/api';
+import { Tables } from '@/integrations/supabase/types';
 
-interface BankAccount {
-  id: string;
-  account_no: string;
-  account_holder: string;
-  bank_name: string;
-  bank_code: string;
+interface BankAccount extends Tables<'bank_accounts'> {
+  account_holder?: string;
+  bank_name?: string;
+  bank_code?: string;
 }
 
 const BankAccounts = () => {
-  const [accounts, setAccounts] = useState<BankAccount[]>([
-    { id: '1', account_no: '1234567890', account_holder: 'John Doe', bank_name: 'Chase Bank', bank_code: 'CHASEUS33' },
-    { id: '2', account_no: '0987654321', account_holder: 'Jane Smith', bank_name: 'Bank of America', bank_code: 'BOFAUS3N' },
-    { id: '3', account_no: '5678901234', account_holder: 'Alex Johnson', bank_name: 'Wells Fargo', bank_code: 'WFBIUS6S' },
-  ]);
+  const [accounts, setAccounts] = useState<BankAccount[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentAccount, setCurrentAccount] = useState<BankAccount | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        setIsLoading(true);
+        const { accounts } = await apiService.getBankAccounts();
+        setAccounts(accounts || []);
+      } catch (error) {
+        console.error('Failed to fetch bank accounts:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load bank accounts",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAccounts();
+  }, []);
+
   const handleAddAccount = () => {
-    setCurrentAccount({ id: '', account_no: '', account_holder: '', bank_name: '', bank_code: '' });
+    setCurrentAccount({
+      id: '',
+      user_id: '',
+      account_number: '',
+      account_type: '',
+      status: 'active',
+      balance: 0,
+      created_at: '',
+      updated_at: '',
+      account_holder: '',
+      bank_name: '',
+      bank_code: ''
+    });
     setIsDialogOpen(true);
   };
 
@@ -59,39 +89,55 @@ const BankAccounts = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleSaveAccount = () => {
+  const handleSaveAccount = async () => {
     if (!currentAccount) return;
 
-    if (currentAccount.id) {
-      // Update existing account
-      setAccounts(accounts.map(account => 
-        account.id === currentAccount.id ? currentAccount : account
-      ));
-      toast({ title: "Bank account updated successfully" });
-    } else {
-      // Add new account
-      const newAccount = {
-        ...currentAccount,
-        id: Date.now().toString(),
-      };
-      setAccounts([...accounts, newAccount]);
-      toast({ title: "Bank account added successfully" });
+    try {
+      if (currentAccount.id) {
+        // Update existing account functionality would be added here
+        // Since our API doesn't support this yet, we'll just update local state
+        setAccounts(accounts.map(account => 
+          account.id === currentAccount.id ? currentAccount : account
+        ));
+        toast({ title: "Bank account updated successfully" });
+      } else {
+        // Add new account
+        const { account } = await apiService.createBankAccount({
+          user_id: currentAccount.user_id,
+          account_number: currentAccount.account_number,
+          account_type: currentAccount.account_type,
+          status: 'active'
+        });
+        
+        if (account) {
+          setAccounts([...accounts, account]);
+          toast({ title: "Bank account added successfully" });
+        }
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving bank account:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to save bank account", 
+        variant: "destructive" 
+      });
     }
-    setIsDialogOpen(false);
   };
 
   const confirmDelete = () => {
     if (!currentAccount) return;
     
+    // Since delete functionality isn't implemented in the API, we'll just update local state
     setAccounts(accounts.filter(account => account.id !== currentAccount.id));
     setIsDeleteDialogOpen(false);
     toast({ title: "Bank account deleted successfully" });
   };
 
   const filteredAccounts = accounts.filter(account => 
-    account.account_holder.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    account.bank_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    account.account_no.includes(searchTerm)
+    (account.account_holder?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (account.bank_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    account.account_number.includes(searchTerm)
   );
 
   return (

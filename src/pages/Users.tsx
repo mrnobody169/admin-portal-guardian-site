@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,20 +23,17 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/use-toast';
 import { Edit, Trash, Eye, EyeOff, Plus } from 'lucide-react';
+import { apiService } from '@/services/api';
+import { Tables } from '@/integrations/supabase/types';
 
-interface User {
-  id: string;
-  username: string;
-  password: string;
-  site_url: string;
+interface User extends Tables<'users'> {
+  password?: string;
+  site_url?: string;
 }
 
 const Users = () => {
-  const [users, setUsers] = useState<User[]>([
-    { id: '1', username: 'john.doe', password: 'password123', site_url: 'https://example.com/admin' },
-    { id: '2', username: 'jane.smith', password: 'secure456', site_url: 'https://example.org/admin' },
-    { id: '3', username: 'alex.johnson', password: 'test789', site_url: 'https://test.com/admin' },
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -44,13 +41,43 @@ const Users = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setIsLoading(true);
+        const { users } = await apiService.getUsers();
+        setUsers(users || []);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load users",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
   const handleAddUser = () => {
-    setCurrentUser({ id: '', username: '', password: '', site_url: '' });
+    setCurrentUser({ 
+      id: '', 
+      email: '', 
+      name: '', 
+      role: 'user', 
+      created_at: '', 
+      updated_at: '',
+      password: '',
+      site_url: ''
+    });
     setIsDialogOpen(true);
   };
 
   const handleEditUser = (user: User) => {
-    setCurrentUser({ ...user });
+    setCurrentUser({ ...user, password: user.password || '' });
     setIsDialogOpen(true);
   };
 
@@ -59,36 +86,51 @@ const Users = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleSaveUser = () => {
+  const handleSaveUser = async () => {
     if (!currentUser) return;
 
-    if (currentUser.id) {
-      // Update existing user
-      setUsers(users.map(user => user.id === currentUser.id ? currentUser : user));
-      toast({ title: "User updated successfully" });
-    } else {
-      // Add new user
-      const newUser = {
-        ...currentUser,
-        id: Date.now().toString(),
-      };
-      setUsers([...users, newUser]);
-      toast({ title: "User added successfully" });
+    try {
+      if (currentUser.id) {
+        // Update existing user functionality would be added here
+        // Since our API doesn't support this yet, we'll just update local state
+        setUsers(users.map(user => user.id === currentUser.id ? currentUser : user));
+        toast({ title: "User updated successfully" });
+      } else {
+        // Add new user
+        const { user } = await apiService.createUser({
+          email: currentUser.email,
+          name: currentUser.name,
+          role: currentUser.role
+        });
+        
+        if (user) {
+          setUsers([...users, user]);
+          toast({ title: "User added successfully" });
+        }
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving user:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to save user", 
+        variant: "destructive" 
+      });
     }
-    setIsDialogOpen(false);
   };
 
   const confirmDelete = () => {
     if (!currentUser) return;
     
+    // Since delete functionality isn't implemented in the API, we'll just update local state
     setUsers(users.filter(user => user.id !== currentUser.id));
     setIsDeleteDialogOpen(false);
     toast({ title: "User deleted successfully" });
   };
 
   const filteredUsers = users.filter(user => 
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.site_url.toLowerCase().includes(searchTerm.toLowerCase())
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

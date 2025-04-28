@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 
 // API service for frontend to communicate with backend
 class ApiService {
@@ -23,7 +24,7 @@ class ApiService {
     return response.json();
   }
   
-  async createUser(userData: any) {
+  async createUser(userData: Omit<Tables<'users'>, 'id' | 'created_at' | 'updated_at'>) {
     const headers = await this.getHeaders();
     const response = await fetch(`${this.apiUrl}/users`, {
       method: "POST",
@@ -46,7 +47,7 @@ class ApiService {
     return response.json();
   }
   
-  async createBankAccount(accountData: any) {
+  async createBankAccount(accountData: Omit<Tables<'bank_accounts'>, 'id' | 'created_at' | 'updated_at' | 'balance'>) {
     const headers = await this.getHeaders();
     const response = await fetch(`${this.apiUrl}/bank-accounts`, {
       method: "POST",
@@ -63,7 +64,7 @@ class ApiService {
     return response.json();
   }
   
-  async createLog(logData: any) {
+  async createLog(logData: Omit<Tables<'logs'>, 'id' | 'created_at'>) {
     const headers = await this.getHeaders();
     const response = await fetch(`${this.apiUrl}/logs`, {
       method: "POST",
