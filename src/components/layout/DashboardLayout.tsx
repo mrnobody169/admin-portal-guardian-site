@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/use-toast';
 import { 
-  Users, 
   Database, 
   List, 
   LogOut,
@@ -68,7 +67,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="px-2 py-4">
           <nav className="space-y-1">
             <SidebarItem to="/dashboard" icon={Database} label="Dashboard" />
-            <SidebarItem to="/users" icon={Users} label="User Accounts" />
             <SidebarItem to="/sites" icon={Building} label="Sites" />
             <SidebarItem to="/account-logins" icon={User} label="Account Logins" />
             <SidebarItem to="/bank-accounts" icon={Database} label="Bank Accounts" />
