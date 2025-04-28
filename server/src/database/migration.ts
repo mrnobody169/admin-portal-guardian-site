@@ -1,5 +1,6 @@
 
 import { AppDataSource } from './connection';
+import { Site } from '../entities/Site';
 
 export const runMigrations = async () => {
   // Make sure the database is initialized
@@ -76,7 +77,7 @@ export const runMigrations = async () => {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         username TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
-        role TEXT NOT NULL DEFAULT 'admin',
+        role TEXT NOT NULL DEFAULT 'user',
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
@@ -107,6 +108,9 @@ export const runMigrations = async () => {
     await queryRunner.commitTransaction();
     console.log('Database migrations completed successfully');
     
+    // After migrations are done, create the three specified sites if they don't exist yet
+    await createDefaultSites();
+    
   } catch (error) {
     await queryRunner.rollbackTransaction();
     console.error('Error running migrations:', error);
@@ -115,3 +119,45 @@ export const runMigrations = async () => {
     await queryRunner.release();
   }
 };
+
+// Function to create default sites if they don't exist
+async function createDefaultSites() {
+  try {
+    const siteRepository = AppDataSource.getRepository(Site);
+    
+    // Define the three required sites
+    const defaultSites = [
+      { site_name: "play.iwin.bio", site_id: "play-iwin-bio" },
+      { site_name: "play.b52.cc", site_id: "play-b52-cc" },
+      { site_name: "i.rik.vip", site_id: "i-rik-vip" }
+    ];
+    
+    console.log('Checking and creating default sites...');
+    
+    for (const siteData of defaultSites) {
+      // Check if site already exists
+      const existingSite = await siteRepository.findOne({ 
+        where: { site_name: siteData.site_name } 
+      });
+      
+      if (!existingSite) {
+        // Create the site if it doesn't exist
+        const newSite = siteRepository.create({
+          site_name: siteData.site_name,
+          site_id: siteData.site_id,
+          status: 'active'
+        });
+        
+        await siteRepository.save(newSite);
+        console.log(`Created site: ${siteData.site_name}`);
+      } else {
+        console.log(`Site already exists: ${siteData.site_name}`);
+      }
+    }
+    
+    console.log('Default sites setup completed');
+  } catch (error) {
+    console.error('Error creating default sites:', error);
+    throw error;
+  }
+}
