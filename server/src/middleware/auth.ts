@@ -2,11 +2,17 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-// Extended Express Request interface to include user
+interface JwtPayload {
+  id: string;
+  username: string;
+  role: string;
+  [key: string]: any;
+}
+
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
+      user?: JwtPayload;
     }
   }
 }
@@ -21,8 +27,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   }
   
   try {
-    const jwtSecret = process.env.JWT_SECRET || 'default_secret';
-    const user = jwt.verify(token, jwtSecret);
+    const user = jwt.verify(token, process.env.JWT_SECRET || 'default_secret') as JwtPayload;
     req.user = user;
     next();
   } catch (error) {

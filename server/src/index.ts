@@ -47,7 +47,11 @@ const swaggerOptions = {
       bearerAuth: []
     }]
   },
-  apis: ['./src/routes/*.ts', './src/controllers/*.ts', './src/entities/*.ts'],
+  apis: [
+    './src/controllers/*.ts', 
+    './src/entities/*.ts',
+    './src/routes/*.ts'
+  ],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);

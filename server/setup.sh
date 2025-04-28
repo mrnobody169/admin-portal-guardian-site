@@ -10,6 +10,7 @@ fi
 # Install dependencies
 echo "Installing dependencies..."
 npm install
+npm install swagger-jsdoc swagger-ui-express @types/swagger-jsdoc @types/swagger-ui-express --save
 
 # Start the database
 echo "Starting database with Docker..."
