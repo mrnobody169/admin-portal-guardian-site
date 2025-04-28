@@ -1,5 +1,5 @@
 
-import { DataSource } from 'typeorm';
+import { DataSource, ObjectLiteral } from 'typeorm';
 import { User } from '../entities/User';
 import { BankAccount } from '../entities/BankAccount';
 import { Log } from '../entities/Log';
@@ -39,6 +39,6 @@ export const createConnection = async () => {
 };
 
 // Get repository function helper
-export const getRepository = <T>(entity: any) => {
+export const getRepository = <T extends ObjectLiteral>(entity: any) => {
   return AppDataSource.getRepository<T>(entity);
 };
