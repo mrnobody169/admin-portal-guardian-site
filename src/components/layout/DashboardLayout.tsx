@@ -10,7 +10,9 @@ import {
   Database, 
   List, 
   LogOut,
-  Shield
+  Shield,
+  Building,
+  User
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -67,6 +69,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <nav className="space-y-1">
             <SidebarItem to="/dashboard" icon={Database} label="Dashboard" />
             <SidebarItem to="/users" icon={Users} label="User Accounts" />
+            <SidebarItem to="/sites" icon={Building} label="Sites" />
+            <SidebarItem to="/account-logins" icon={User} label="Account Logins" />
             <SidebarItem to="/bank-accounts" icon={Database} label="Bank Accounts" />
             <SidebarItem to="/logs" icon={List} label="System Logs" />
           </nav>
