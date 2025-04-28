@@ -1,7 +1,7 @@
 
 # Backend Server
 
-This server provides the backend API for the application with PostgreSQL integration.
+This server provides the backend API for the application with PostgreSQL integration using TypeORM.
 
 ## Getting Started
 
@@ -9,6 +9,7 @@ This server provides the backend API for the application with PostgreSQL integra
 
 - Node.js (v14 or later)
 - PostgreSQL (v13 or later)
+- TypeScript
 
 ### Installation
 
@@ -27,12 +28,6 @@ npm install
 cp .env.example .env
 ```
 
-6. Initialize the database schema:
-
-```bash
-psql -U your_username -d your_database_name -f db/schema.sql
-```
-
 ### Running the Server
 
 Development mode with auto-reload:
@@ -41,9 +36,10 @@ Development mode with auto-reload:
 npm run dev
 ```
 
-Production mode:
+Build and run in production mode:
 
 ```bash
+npm run build
 npm start
 ```
 
@@ -73,3 +69,23 @@ npm start
 
 - GET `/api/logs`: Get all logs
 - POST `/api/logs`: Create a new log entry
+
+## Architecture
+
+The server is built with a clean architecture pattern:
+
+- **Entities**: TypeORM entity classes representing database tables
+- **Controllers**: Handle HTTP requests and responses
+- **Services**: Contain business logic and interact with repositories
+- **Routes**: Define API endpoints and link them to controllers
+- **Middleware**: Implement authentication and other cross-cutting concerns
+
+## Future Extensions
+
+The architecture is designed to be easily extended for additional features such as:
+
+- Cron jobs for data crawling
+- Additional entity types
+- Complex business logic
+- Authentication strategies
+
