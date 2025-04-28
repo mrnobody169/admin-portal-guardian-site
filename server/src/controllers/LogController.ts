@@ -2,9 +2,40 @@
 import { Request, Response } from 'express';
 import { LogService } from '../services/LogService';
 
+/**
+ * @swagger
+ * tags:
+ *   name: Logs
+ *   description: Log management endpoints
+ */
 export class LogController {
   private logService = new LogService();
 
+  /**
+   * @swagger
+   * /api/logs:
+   *   get:
+   *     summary: Get all logs
+   *     tags: [Logs]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: List of logs
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 logs:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/Log'
+   *       401:
+   *         description: Unauthorized
+   *       500:
+   *         description: Server error
+   */
   getLogs = async (req: Request, res: Response) => {
     try {
       const logs = await this.logService.findAll();
@@ -15,6 +46,49 @@ export class LogController {
     }
   }
 
+  /**
+   * @swagger
+   * /api/logs:
+   *   post:
+   *     summary: Create a new log entry
+   *     tags: [Logs]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - action
+   *               - entity
+   *             properties:
+   *               action:
+   *                 type: string
+   *               entity:
+   *                 type: string
+   *               entity_id:
+   *                 type: string
+   *               user_id:
+   *                 type: string
+   *               details:
+   *                 type: object
+   *     responses:
+   *       201:
+   *         description: Log created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 log:
+   *                   $ref: '#/components/schemas/Log'
+   *       401:
+   *         description: Unauthorized
+   *       500:
+   *         description: Server error
+   */
   createLog = async (req: Request, res: Response) => {
     const { action, entity, entity_id, user_id, details } = req.body;
     

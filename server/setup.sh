@@ -19,6 +19,10 @@ docker-compose up -d
 echo "Waiting for database to be ready..."
 sleep 5
 
+# Build the project
+echo "Building the project..."
+npm run build
+
 # Run database migrations
 echo "Running database migrations..."
 npm run migrate
@@ -27,4 +31,5 @@ npm run migrate
 echo "Setting up initial data..."
 npm run setup-db
 
-echo "Setup complete! You can now run the server with: npm start"
+echo "Setup complete! You can now run the server with: npm run dev"
+echo "API documentation will be available at: http://localhost:4000/api-docs"

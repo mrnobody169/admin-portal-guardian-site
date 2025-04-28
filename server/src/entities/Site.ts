@@ -1,5 +1,7 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { BankAccount } from './BankAccount';
+import { AccountLogin } from './AccountLogin';
 
 @Entity('sites')
 export class Site {
@@ -14,6 +16,12 @@ export class Site {
 
   @Column({ type: 'text', default: 'active' })
   status: string;
+
+  @OneToMany(() => BankAccount, bankAccount => bankAccount.site)
+  bankAccounts: BankAccount[];
+
+  @OneToMany(() => AccountLogin, accountLogin => accountLogin.site)
+  accountLogins: AccountLogin[];
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;
