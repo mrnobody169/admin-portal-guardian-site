@@ -19,6 +19,16 @@ CREATE TABLE IF NOT EXISTS sites (
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
+-- Create account_users table
+CREATE TABLE IF NOT EXISTS account_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username TEXT NOT NULL UNIQUE,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'admin',
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
 -- Create bank_accounts table
 CREATE TABLE IF NOT EXISTS bank_accounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -47,22 +57,12 @@ CREATE TABLE IF NOT EXISTS account_logins (
   FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
 );
 
--- Create account_users table
-CREATE TABLE IF NOT EXISTS account_users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  username TEXT NOT NULL UNIQUE,
-  password TEXT NOT NULL,
-  role TEXT NOT NULL DEFAULT 'admin',
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
 -- Create logs table
 CREATE TABLE IF NOT EXISTS logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   action TEXT NOT NULL,
   entity TEXT NOT NULL,
-  entity_id UUID,
+  entity_id TEXT,
   user_id UUID,
   details JSONB,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),

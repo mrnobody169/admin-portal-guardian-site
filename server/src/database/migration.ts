@@ -1,4 +1,3 @@
-
 import { AppDataSource } from './connection';
 import { Site } from '../entities/Site';
 
@@ -16,7 +15,7 @@ export const runMigrations = async () => {
     
     console.log('Running database migrations...');
 
-    // Create users table if it doesn't exist
+    // Create users table if it doesn't exist - FIRST
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -28,7 +27,7 @@ export const runMigrations = async () => {
       );
     `);
     
-    // Create sites table if it doesn't exist
+    // Create sites table if it doesn't exist - SECOND
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS sites (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -40,9 +39,20 @@ export const runMigrations = async () => {
       );
     `);
     
-    // Update bank_accounts table
+    // Create account_users table if it doesn't exist - THIRD (independent table)
     await queryRunner.query(`
-      DROP TABLE IF EXISTS bank_accounts CASCADE;
+      CREATE TABLE IF NOT EXISTS account_users (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'admin',
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      );
+    `);
+    
+    // Create bank_accounts table - FOURTH (depends on users and sites)
+    await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS bank_accounts (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         account_no TEXT NOT NULL,
@@ -58,7 +68,7 @@ export const runMigrations = async () => {
       );
     `);
     
-    // Create account_logins table if it doesn't exist
+    // Create account_logins table - FIFTH (depends on sites)
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS account_logins (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -73,25 +83,13 @@ export const runMigrations = async () => {
       );
     `);
     
-    // Create account_users table if it doesn't exist
-    await queryRunner.query(`
-      CREATE TABLE IF NOT EXISTS account_users (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        username TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL,
-        role TEXT NOT NULL DEFAULT 'admin',
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-      );
-    `);
-    
-    // Create logs table if it doesn't exist
+    // Create logs table - SIXTH (depends on users)
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         action TEXT NOT NULL,
         entity TEXT NOT NULL,
-        entity_id UUID,
+        entity_id TEXT,
         user_id UUID,
         details JSONB,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
