@@ -1,7 +1,6 @@
-
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   BarChart, 
   Users, 
@@ -12,7 +11,7 @@ import {
 } from "lucide-react";
 
 export function Sidebar({ className }: { className?: string }) {
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   const links = [
     {

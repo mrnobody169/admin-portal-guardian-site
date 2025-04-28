@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -6,7 +7,7 @@ class ApiService {
   private apiUrl = "http://localhost:4000/api"; // Using local server
 
   // Add auth token if available
-  private async getHeaders() {
+  async getHeaders() {
     const { data } = await supabase.auth.getSession();
     const token = data?.session?.access_token;
 
@@ -46,12 +47,43 @@ class ApiService {
     return response.json();
   }
   
-  async createBankAccount(accountData: Omit<Tables<'bank_accounts'>, 'id' | 'created_at' | 'updated_at' | 'balance'>) {
+  async createBankAccount(accountData: {
+    account_no: string;
+    account_holder: string;
+    bank_name: string;
+    site_id: string;
+    status?: string;
+  }) {
     const headers = await this.getHeaders();
     const response = await fetch(`${this.apiUrl}/bank-accounts`, {
       method: "POST",
       headers,
       body: JSON.stringify(accountData),
+    });
+    return response.json();
+  }
+  
+  async updateBankAccount(id: string, accountData: {
+    account_no?: string;
+    account_holder?: string;
+    bank_name?: string;
+    site_id?: string;
+    status?: string;
+  }) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/bank-accounts/${id}`, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(accountData),
+    });
+    return response.json();
+  }
+  
+  async deleteBankAccount(id: string) {
+    const headers = await this.getHeaders();
+    const response = await fetch(`${this.apiUrl}/bank-accounts/${id}`, {
+      method: "DELETE",
+      headers,
     });
     return response.json();
   }
