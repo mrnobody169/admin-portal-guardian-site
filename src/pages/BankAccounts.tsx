@@ -176,7 +176,7 @@ const BankAccounts = () => {
           <tbody>
             {filteredAccounts.map((account) => (
               <tr key={account.id}>
-                <td>{account.account_no}</td>
+                <td>{account.account_number}</td>
                 <td>{account.account_holder}</td>
                 <td>{account.bank_name}</td>
                 <td>{account.bank_code}</td>
@@ -225,13 +225,13 @@ const BankAccounts = () => {
           {currentAccount && (
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="account_no" className="text-right">
+                <Label htmlFor="account_number" className="text-right">
                   Account Number
                 </Label>
                 <Input
-                  id="account_no"
-                  value={currentAccount.account_no}
-                  onChange={(e) => setCurrentAccount({ ...currentAccount, account_no: e.target.value })}
+                  id="account_number"
+                  value={currentAccount.account_number}
+                  onChange={(e) => setCurrentAccount({ ...currentAccount, account_number: e.target.value })}
                   className="col-span-3"
                 />
               </div>

@@ -4,7 +4,7 @@ import { Tables } from "@/integrations/supabase/types";
 
 // API service for frontend to communicate with backend
 class ApiService {
-  private apiUrl = "https://wvyleuiwbmbpfpmrstgg.functions.supabase.co/api";
+  private apiUrl = "http://localhost:4000/api"; // Using local server
 
   // Add auth token if available
   private async getHeaders() {

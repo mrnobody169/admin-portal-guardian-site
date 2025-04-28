@@ -13,6 +13,7 @@ interface LogEntry extends Tables<'logs'> {
   level?: 'info' | 'warning' | 'error';
   source?: string;
   message?: string;
+  user_id?: string; // Changed from 'user' to 'user_id' to match the schema
 }
 
 const Logs = () => {
@@ -126,7 +127,7 @@ const Logs = () => {
               <th>Timestamp</th>
               <th>Level</th>
               <th>Source</th>
-              <th>User</th>
+              <th>User ID</th>
               <th>Message</th>
             </tr>
           </thead>
@@ -140,7 +141,7 @@ const Logs = () => {
                   </Badge>
                 </td>
                 <td>{log.source}</td>
-                <td>{log.user}</td>
+                <td>{log.user_id}</td>
                 <td className="max-w-md truncate">{log.message}</td>
               </tr>
             ))}

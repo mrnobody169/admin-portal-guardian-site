@@ -29,6 +29,9 @@ import { Tables } from '@/integrations/supabase/types';
 interface User extends Tables<'users'> {
   password?: string;
   site_url?: string;
+  // Adding email and name which are in the Users table
+  email: string;
+  name: string;
 }
 
 const Users = () => {
@@ -168,7 +171,8 @@ const Users = () => {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Username</th>
+              <th>Name</th>
+              <th>Email</th>
               <th>Password</th>
               <th>Site URL</th>
               <th>Actions</th>
@@ -177,7 +181,8 @@ const Users = () => {
           <tbody>
             {filteredUsers.map((user) => (
               <tr key={user.id}>
-                <td>{user.username}</td>
+                <td>{user.name}</td>
+                <td>{user.email}</td>
                 <td>
                   {showPasswords ? user.password : '••••••••'}
                 </td>
@@ -209,7 +214,7 @@ const Users = () => {
             ))}
             {filteredUsers.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center py-8">No users found</td>
+                <td colSpan={5} className="text-center py-8">No users found</td>
               </tr>
             )}
           </tbody>
@@ -231,13 +236,25 @@ const Users = () => {
           {currentUser && (
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="username" className="text-right">
-                  Username
+                <Label htmlFor="name" className="text-right">
+                  Name
                 </Label>
                 <Input
-                  id="username"
-                  value={currentUser.username}
-                  onChange={(e) => setCurrentUser({ ...currentUser, username: e.target.value })}
+                  id="name"
+                  value={currentUser.name}
+                  onChange={(e) => setCurrentUser({ ...currentUser, name: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={currentUser.email}
+                  onChange={(e) => setCurrentUser({ ...currentUser, email: e.target.value })}
                   className="col-span-3"
                 />
               </div>
@@ -281,7 +298,7 @@ const Users = () => {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the user
-              account for {currentUser?.username}.
+              account for {currentUser?.name}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
