@@ -30,19 +30,27 @@ export class BankAccountController {
     }
   }
 
+  getBankAccountsBySiteId = async (req: Request, res: Response) => {
+    try {
+      const accounts = await this.bankAccountService.findBySiteId(req.params.siteId);
+      res.json({ accounts });
+    } catch (error) {
+      console.error('Error fetching bank accounts:', error);
+      res.status(500).json({ error: 'Failed to fetch bank accounts' });
+    }
+  }
+
   createBankAccount = async (req: Request, res: Response) => {
-    const { user_id, account_number, account_type, status, account_holder, bank_name, bank_code } = req.body;
+    const { account_no, account_holder, bank_name, site_id, status } = req.body;
     
     try {
       const account = await this.bankAccountService.create(
         { 
-          user_id, 
-          account_number, 
-          account_type, 
-          status: status || 'active',
-          account_holder,
-          bank_name,
-          bank_code
+          account_no, 
+          account_holder, 
+          bank_name, 
+          site_id, 
+          status: status || 'active'
         },
         req.user?.id
       );
@@ -55,18 +63,17 @@ export class BankAccountController {
   }
 
   updateBankAccount = async (req: Request, res: Response) => {
-    const { account_number, account_type, status, account_holder, bank_name, bank_code } = req.body;
+    const { account_no, account_holder, bank_name, site_id, status } = req.body;
     
     try {
       const account = await this.bankAccountService.update(
         req.params.id,
         {
-          account_number,
-          account_type,
-          status,
+          account_no,
           account_holder,
           bank_name,
-          bank_code
+          site_id,
+          status
         },
         req.user?.id
       );

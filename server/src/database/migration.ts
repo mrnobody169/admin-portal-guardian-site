@@ -27,20 +27,58 @@ export const runMigrations = async () => {
       );
     `);
     
-    // Create bank_accounts table if it doesn't exist
+    // Create sites table if it doesn't exist
     await queryRunner.query(`
+      CREATE TABLE IF NOT EXISTS sites (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        site_name TEXT NOT NULL,
+        site_id TEXT NOT NULL UNIQUE,
+        status TEXT NOT NULL DEFAULT 'active',
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      );
+    `);
+    
+    // Update bank_accounts table
+    await queryRunner.query(`
+      DROP TABLE IF EXISTS bank_accounts CASCADE;
       CREATE TABLE IF NOT EXISTS bank_accounts (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        account_number TEXT NOT NULL,
-        account_type TEXT NOT NULL,
+        account_no TEXT NOT NULL,
+        account_holder TEXT NOT NULL,
+        bank_name TEXT NOT NULL,
+        site_id TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'active',
-        balance NUMERIC NOT NULL DEFAULT 0,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        account_holder TEXT,
-        bank_name TEXT,
-        bank_code TEXT
+        FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
+      );
+    `);
+    
+    // Create account_logins table if it doesn't exist
+    await queryRunner.query(`
+      CREATE TABLE IF NOT EXISTS account_logins (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        username TEXT NOT NULL,
+        password TEXT NOT NULL,
+        token TEXT,
+        site_id TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
+      );
+    `);
+    
+    // Create account_users table if it doesn't exist
+    await queryRunner.query(`
+      CREATE TABLE IF NOT EXISTS account_users (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'admin',
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
     `);
     
@@ -59,7 +97,8 @@ export const runMigrations = async () => {
     
     // Create indexes for faster lookups
     await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_bank_accounts_user_id ON bank_accounts(user_id);
+      CREATE INDEX IF NOT EXISTS idx_bank_accounts_site_id ON bank_accounts(site_id);
+      CREATE INDEX IF NOT EXISTS idx_account_logins_site_id ON account_logins(site_id);
       CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);
       CREATE INDEX IF NOT EXISTS idx_logs_entity ON logs(entity);
       CREATE INDEX IF NOT EXISTS idx_logs_user_id ON logs(user_id);

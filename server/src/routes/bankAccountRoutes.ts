@@ -9,6 +9,7 @@ const bankAccountController = new BankAccountController();
 // Routes
 router.get('/', authenticateToken, bankAccountController.getBankAccounts);
 router.get('/:id', authenticateToken, bankAccountController.getBankAccountById);
+router.get('/site/:siteId', authenticateToken, bankAccountController.getBankAccountsBySiteId);
 router.post('/', authenticateToken, bankAccountController.createBankAccount);
 router.put('/:id', authenticateToken, bankAccountController.updateBankAccount);
 router.delete('/:id', authenticateToken, bankAccountController.deleteBankAccount);

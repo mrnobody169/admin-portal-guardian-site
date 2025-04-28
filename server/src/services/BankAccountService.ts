@@ -15,11 +15,12 @@ export class BankAccountService {
     return this.bankAccountRepository.findOne({ where: { id } });
   }
 
+  async findBySiteId(siteId: string): Promise<BankAccount[]> {
+    return this.bankAccountRepository.find({ where: { site_id: siteId } });
+  }
+
   async create(accountData: Partial<BankAccount>, loggedInUserId?: string): Promise<BankAccount> {
-    const account = this.bankAccountRepository.create({
-      ...accountData,
-      balance: 0 // Default balance
-    });
+    const account = this.bankAccountRepository.create(accountData);
     
     const savedAccount = await this.bankAccountRepository.save(account);
 
@@ -70,7 +71,7 @@ export class BankAccountService {
       entity: 'bank_accounts',
       entity_id: id,
       user_id: loggedInUserId,
-      details: { deletedAccount: account.account_number }
+      details: { deletedAccount: account.account_no }
     });
   }
 }

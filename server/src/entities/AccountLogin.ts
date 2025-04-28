@@ -2,19 +2,19 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Site } from './Site';
 
-@Entity('bank_accounts')
-export class BankAccount {
+@Entity('account_logins')
+export class AccountLogin {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'text' })
-  account_no: string;
+  username: string;
 
   @Column({ type: 'text' })
-  account_holder: string;
+  password: string;
 
-  @Column({ type: 'text' })
-  bank_name: string;
+  @Column({ type: 'text', nullable: true })
+  token: string;
 
   @Column({ type: 'text' })
   site_id: string;
@@ -28,7 +28,7 @@ export class BankAccount {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updated_at: Date;
 
-  @ManyToOne(() => Site, site => site.bankAccounts)
+  @ManyToOne(() => Site, site => site.accountLogins)
   @JoinColumn({ name: 'site_id' })
   site: Site;
 }
