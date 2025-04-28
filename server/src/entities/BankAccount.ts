@@ -1,6 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Site } from './Site';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('bank_accounts')
 export class BankAccount {
@@ -27,8 +26,4 @@ export class BankAccount {
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updated_at: Date;
-
-  @ManyToOne(() => Site, site => site.bankAccounts)
-  @JoinColumn({ name: 'site_id' })
-  site: Site;
 }

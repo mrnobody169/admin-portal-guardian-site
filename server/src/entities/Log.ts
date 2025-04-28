@@ -1,6 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from './User';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
 @Entity('logs')
 export class Log {
@@ -13,19 +12,15 @@ export class Log {
   @Column({ type: 'text' })
   entity: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: 'text', nullable: true })
   entity_id: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: 'text', nullable: true })
   user_id: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  details: any;
+  details: Record<string, any>;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;
-
-  @ManyToOne(() => User, user => user.logs)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
 }
