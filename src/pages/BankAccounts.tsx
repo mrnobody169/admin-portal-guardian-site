@@ -32,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { format } from "date-fns";
 
 interface BankAccount {
   id: string;
@@ -104,11 +105,17 @@ const BankAccounts = () => {
       toast({ title: "Bank account removed", description: "A bank account was removed" });
     });
     
+    // Connection established event
+    const connectionUnsubscribe = websocketService.subscribe('connection_established', (data) => {
+      console.log('WebSocket connection established:', data);
+    });
+    
     // Cleanup function
     return () => {
       createUnsubscribe();
       updateUnsubscribe();
       deleteUnsubscribe();
+      connectionUnsubscribe();
       websocketService.disconnect();
     };
   }, []);
@@ -205,6 +212,14 @@ const BankAccounts = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy HH:mm');
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
   const filteredAccounts = accounts.filter(account => 
     (account.account_holder.toLowerCase()).includes(searchTerm.toLowerCase()) ||
     (account.bank_name.toLowerCase()).includes(searchTerm.toLowerCase()) ||
@@ -246,13 +261,14 @@ const BankAccounts = () => {
               <TableHead>Bank Name</TableHead>
               <TableHead>Site</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAccounts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   No bank accounts found
                 </TableCell>
               </TableRow>
@@ -270,6 +286,7 @@ const BankAccounts = () => {
                       {account.status}
                     </span>
                   </TableCell>
+                  <TableCell>{formatDate(account.created_at)}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button

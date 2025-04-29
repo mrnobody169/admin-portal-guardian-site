@@ -18,6 +18,13 @@ export class WebSocketService {
       console.log('WebSocket client connected');
       this.clients.add(ws);
 
+      // Send a test message to verify connection
+      this.sendEvent(ws, 'connection_established', { message: 'WebSocket connection established' });
+
+      ws.on('message', (message) => {
+        console.log('Received message:', message.toString());
+      });
+
       ws.on('close', () => {
         console.log('WebSocket client disconnected');
         this.clients.delete(ws);
@@ -30,6 +37,13 @@ export class WebSocketService {
     });
 
     console.log('WebSocket server initialized');
+  }
+
+  sendEvent(client: WebSocket, event: string, data: any) {
+    const message: WebSocketEvent = { event, data };
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(message));
+    }
   }
 
   broadcastEvent(event: string, data: any) {

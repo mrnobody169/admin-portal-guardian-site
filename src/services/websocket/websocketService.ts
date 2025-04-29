@@ -3,7 +3,8 @@ import { toast } from "@/components/ui/use-toast";
 
 type MessageHandler = (data: any) => void;
 type EventType = 'bank_account_created' | 'bank_account_updated' | 'bank_account_deleted' | 
-                 'account_login_created' | 'account_login_updated' | 'account_login_deleted';
+                 'account_login_created' | 'account_login_updated' | 'account_login_deleted' |
+                 'connection_established';
 
 class WebSocketService {
   private socket: WebSocket | null = null;
@@ -12,26 +13,40 @@ class WebSocketService {
   private maxReconnectAttempts = 5;
   private eventHandlers: Map<EventType, MessageHandler[]> = new Map();
   private url: string;
+  private isConnecting = false;
 
   constructor() {
-    this.url = `ws://${window.location.hostname}:4000/ws`;
+    // Use secure WebSocket if the site is on HTTPS
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    this.url = `${protocol}//${window.location.hostname}:4000/ws`;
   }
 
   public connect(): void {
+    if (this.isConnecting) return;
+    
     if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
       return;
     }
 
+    this.isConnecting = true;
+    
+    console.log('Connecting to WebSocket:', this.url);
     this.socket = new WebSocket(this.url);
     
     this.socket.onopen = () => {
       console.log('WebSocket connection established');
       this.reconnectAttempts = 0;
+      this.isConnecting = false;
+      
+      // Send a ping to test the connection
+      this.ping();
     };
 
     this.socket.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
+        console.log('WebSocket message received:', message);
+        
         if (message.event && this.eventHandlers.has(message.event as EventType)) {
           const handlers = this.eventHandlers.get(message.event as EventType) || [];
           handlers.forEach(handler => handler(message.data));
@@ -43,6 +58,9 @@ class WebSocketService {
 
     this.socket.onclose = () => {
       console.log('WebSocket connection closed');
+      this.socket = null;
+      this.isConnecting = false;
+      
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
         setTimeout(() => {
           this.reconnectAttempts++;
@@ -59,6 +77,7 @@ class WebSocketService {
 
     this.socket.onerror = (error) => {
       console.error('WebSocket error:', error);
+      this.isConnecting = false;
     };
   }
 
@@ -66,6 +85,13 @@ class WebSocketService {
     if (this.socket) {
       this.socket.close();
       this.socket = null;
+    }
+  }
+
+  private ping(): void {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      console.log('Sending ping to server');
+      this.socket.send(JSON.stringify({ type: 'ping' }));
     }
   }
 

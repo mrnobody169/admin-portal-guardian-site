@@ -33,6 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Select } from '@/components/ui/select';
+import { format } from "date-fns";
 
 interface AccountLogin {
   id: string;
@@ -122,11 +123,17 @@ const AccountLogins = () => {
       toast({ title: "Account login removed", description: "An account login was removed" });
     });
     
+    // Connection established event
+    const connectionUnsubscribe = websocketService.subscribe('connection_established', (data) => {
+      console.log('WebSocket connection established:', data);
+    });
+    
     // Cleanup function
     return () => {
       createUnsubscribe();
       updateUnsubscribe();
       deleteUnsubscribe();
+      connectionUnsubscribe();
       websocketService.disconnect();
     };
   }, []);
@@ -236,6 +243,14 @@ const AccountLogins = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy HH:mm');
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
   const filteredAccountLogins = accountLogins.filter(login => 
     login.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     getSiteNameById(login.site_id).toLowerCase().includes(searchTerm.toLowerCase())
@@ -275,13 +290,14 @@ const AccountLogins = () => {
               <TableHead>Site</TableHead>
               <TableHead>Token</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAccountLogins.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={6} className="h-24 text-center">
                   No account logins found
                 </TableCell>
               </TableRow>
@@ -298,6 +314,7 @@ const AccountLogins = () => {
                       {login.status}
                     </span>
                   </TableCell>
+                  <TableCell>{formatDate(login.created_at)}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button
