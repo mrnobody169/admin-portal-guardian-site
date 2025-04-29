@@ -1,4 +1,3 @@
-
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Log } from './Log';
 
@@ -31,3 +30,42 @@ export class User {
   @OneToMany(() => Log, log => log.user)
   logs: Log[];
 }
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - username
+ *         - password
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           description: The auto-generated UUID of the user
+ *         username:
+ *           type: string
+ *           description: The username of the user
+ *         password:
+ *           type: string
+ *           description: The password of the user (not returned in responses)
+ *         email:
+ *           type: string
+ *           description: The email of the user
+ *         name:
+ *           type: string
+ *           description: The name of the user
+ *         role:
+ *           type: string
+ *           description: The role of the user
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *           description: The timestamp when the user was created
+ *         updated_at:
+ *           type: string
+ *           format: date-time
+ *           description: The timestamp when the user was last updated
+ */
