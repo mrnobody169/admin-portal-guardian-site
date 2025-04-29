@@ -8,8 +8,8 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: crawl
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

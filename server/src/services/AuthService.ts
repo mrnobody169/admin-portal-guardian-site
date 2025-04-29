@@ -3,7 +3,6 @@ import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { Repository } from '../database/connection';
 import { User } from '../entities/User';
-import { supabase } from '../database/connection';
 
 export class AuthService {
   private userRepository: Repository<User>;
@@ -13,31 +12,6 @@ export class AuthService {
   }
 
   async validateUser(username: string, password: string): Promise<any> {
-    // Try Supabase auth first if available
-    if (supabase) {
-      try {
-        const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithPassword({
-          email: username, // Using username as email
-          password: password,
-        });
-        
-        if (!supabaseError && supabaseData && supabaseData.user) {
-          console.log("Supabase authentication successful");
-          return {
-            id: supabaseData.user.id,
-            username: username,
-            role: 'admin' // Default role, can be customized
-          };
-        } else {
-          console.log("Supabase auth failed, trying local DB");
-        }
-      } catch (error) {
-        console.error("Supabase auth error:", error);
-        // Continue to local auth if Supabase fails
-      }
-    }
-    
-    // If Supabase auth not available or fails, try local database
     try {
       const user = await this.userRepository.findOne({ username });
       
@@ -55,7 +29,7 @@ export class AuthService {
       const { password: _, ...userWithoutPassword } = user;
       return userWithoutPassword;
     } catch (error) {
-      console.error("Local auth error:", error);
+      console.error("Authentication error:", error);
       throw error;
     }
   }

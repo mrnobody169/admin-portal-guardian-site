@@ -9,11 +9,9 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "migrate": "ts-node src/database/migration.ts",
-    "setup-db": "ts-node src/scripts/setupDb.ts",
-    "setup-supabase": "ts-node src/scripts/setupSupabase.ts"
+    "setup-db": "ts-node src/scripts/setupDb.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.38.4",
     "axios": "^1.9.0",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
