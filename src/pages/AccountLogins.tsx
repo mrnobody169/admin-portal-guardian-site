@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +23,7 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { User, Edit, Trash2, Plus, Loader2, Eye, EyeOff } from 'lucide-react';
 import { apiService } from '@/services/api';
+import { websocketService } from '@/services/websocket/websocketService';
 import {
   Table,
   TableBody,
@@ -86,6 +86,49 @@ const AccountLogins = () => {
     };
 
     fetchData();
+    
+    // Connect to WebSocket
+    websocketService.connect();
+    
+    // Subscribe to account login events
+    const createUnsubscribe = websocketService.subscribe('account_login_created', (data) => {
+      const loginWithMaskedPassword = { 
+        ...data.accountLogin, 
+        password: '********'
+      };
+      setAccountLogins(prev => [...prev, loginWithMaskedPassword]);
+      toast({ 
+        title: "New account login added", 
+        description: `${loginWithMaskedPassword.username} was added` 
+      });
+    });
+    
+    const updateUnsubscribe = websocketService.subscribe('account_login_updated', (data) => {
+      const loginWithMaskedPassword = { 
+        ...data.accountLogin, 
+        password: '********'
+      };
+      setAccountLogins(prev => 
+        prev.map(login => login.id === loginWithMaskedPassword.id ? loginWithMaskedPassword : login)
+      );
+      toast({ 
+        title: "Account login updated", 
+        description: `${loginWithMaskedPassword.username} was updated` 
+      });
+    });
+    
+    const deleteUnsubscribe = websocketService.subscribe('account_login_deleted', (data) => {
+      setAccountLogins(prev => prev.filter(login => login.id !== data.id));
+      toast({ title: "Account login removed", description: "An account login was removed" });
+    });
+    
+    // Cleanup function
+    return () => {
+      createUnsubscribe();
+      updateUnsubscribe();
+      deleteUnsubscribe();
+      websocketService.disconnect();
+    };
   }, []);
 
   const handleAddAccountLogin = () => {
@@ -148,15 +191,12 @@ const AccountLogins = () => {
           updateData.token = currentAccountLogin.token;
         }
         
-        const { accountLogin } = await apiService.updateAccountLogin(currentAccountLogin.id, updateData);
-        
-        if (accountLogin) {
-          setAccountLogins(accountLogins.map(l => l.id === accountLogin.id ? {...accountLogin, password: '********'} : l));
-          toast({ title: "Account login updated successfully" });
-        }
+        await apiService.updateAccountLogin(currentAccountLogin.id, updateData);
+        // WebSocket will handle UI update
+        toast({ title: "Account login updated successfully" });
       } else {
         // Add new account login
-        const { accountLogin } = await apiService.createAccountLogin({
+        await apiService.createAccountLogin({
           username: currentAccountLogin.username,
           password: currentAccountLogin.password || '',
           token: currentAccountLogin.token || '',
@@ -164,10 +204,8 @@ const AccountLogins = () => {
           status: currentAccountLogin.status
         });
         
-        if (accountLogin) {
-          setAccountLogins([...accountLogins, {...accountLogin, password: '********'}]);
-          toast({ title: "Account login added successfully" });
-        }
+        // WebSocket will handle UI update
+        toast({ title: "Account login added successfully" });
       }
       setIsDialogOpen(false);
     } catch (error) {
@@ -185,7 +223,7 @@ const AccountLogins = () => {
     
     try {
       await apiService.deleteAccountLogin(currentAccountLogin.id);
-      setAccountLogins(accountLogins.filter(login => login.id !== currentAccountLogin.id));
+      // WebSocket will handle UI update
       setIsDeleteDialogOpen(false);
       toast({ title: "Account login deleted successfully" });
     } catch (error) {

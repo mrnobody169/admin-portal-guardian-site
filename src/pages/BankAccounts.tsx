@@ -23,6 +23,7 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { Banknote, Edit, Trash2, Plus, Loader2 } from 'lucide-react';
 import { apiService } from '@/services/api';
+import { websocketService } from '@/services/websocket/websocketService';
 import {
   Table,
   TableBody,
@@ -83,6 +84,33 @@ const BankAccounts = () => {
     };
 
     fetchData();
+    
+    // Connect to WebSocket
+    websocketService.connect();
+    
+    // Subscribe to bank account events
+    const createUnsubscribe = websocketService.subscribe('bank_account_created', (data) => {
+      setAccounts(prev => [...prev, data.account]);
+      toast({ title: "New bank account added", description: `${data.account.account_holder}'s account was added` });
+    });
+    
+    const updateUnsubscribe = websocketService.subscribe('bank_account_updated', (data) => {
+      setAccounts(prev => prev.map(acc => acc.id === data.account.id ? data.account : acc));
+      toast({ title: "Bank account updated", description: `${data.account.account_holder}'s account was updated` });
+    });
+    
+    const deleteUnsubscribe = websocketService.subscribe('bank_account_deleted', (data) => {
+      setAccounts(prev => prev.filter(acc => acc.id !== data.id));
+      toast({ title: "Bank account removed", description: "A bank account was removed" });
+    });
+    
+    // Cleanup function
+    return () => {
+      createUnsubscribe();
+      updateUnsubscribe();
+      deleteUnsubscribe();
+      websocketService.disconnect();
+    };
   }, []);
 
   const handleAddAccount = () => {
@@ -132,10 +160,8 @@ const BankAccounts = () => {
           status: currentAccount.status
         });
         
-        if (account) {
-          setAccounts(accounts.map(a => a.id === account.id ? account : a));
-          toast({ title: "Bank account updated successfully" });
-        }
+        // The WebSocket will handle the UI update
+        toast({ title: "Bank account updated successfully" });
       } else {
         // Add new account
         const { account } = await apiService.createBankAccount({
@@ -145,10 +171,8 @@ const BankAccounts = () => {
           site_id: currentAccount.site_id,
         });
         
-        if (account) {
-          setAccounts([...accounts, account]);
-          toast({ title: "Bank account added successfully" });
-        }
+        // The WebSocket will handle the UI update
+        toast({ title: "Bank account added successfully" });
       }
       setIsDialogOpen(false);
     } catch (error) {
@@ -168,7 +192,7 @@ const BankAccounts = () => {
       // Delete account using ApiService
       await apiService.deleteBankAccount(currentAccount.id);
       
-      setAccounts(accounts.filter(account => account.id !== currentAccount.id));
+      // The WebSocket will handle the UI update
       setIsDeleteDialogOpen(false);
       toast({ title: "Bank account deleted successfully" });
     } catch (error) {
