@@ -34,6 +34,21 @@ export class AuthService {
     }
   }
 
+  async login(username: string, password: string): Promise<any> {
+    try {
+      const user = await this.validateUser(username, password);
+      const token = this.generateToken(user);
+      
+      return {
+        user,
+        token
+      };
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
+  }
+
   generateToken(user: any): string {
     const payload = {
       sub: user.id,

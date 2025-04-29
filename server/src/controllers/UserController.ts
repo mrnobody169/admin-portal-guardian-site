@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/UserService';
+import { AuthService } from '../services/AuthService';
 
 /**
  * @swagger
@@ -9,6 +10,7 @@ import { UserService } from '../services/UserService';
  */
 export class UserController {
   private userService = new UserService();
+  private authService = new AuthService();
 
   /**
    * @swagger
@@ -281,18 +283,17 @@ export class UserController {
     const { username, password } = req.body;
     
     try {
-      const result = await this.userService.authenticate(username, password);
+      const result = await this.authService.login(username, password);
       
       if (!result) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
       
       const { user, token } = result;
-      const { password: _, ...userWithoutPassword } = user;
       
       res.json({
         session: { access_token: token },
-        user: userWithoutPassword
+        user: user
       });
     } catch (error) {
       console.error('Login error:', error);
