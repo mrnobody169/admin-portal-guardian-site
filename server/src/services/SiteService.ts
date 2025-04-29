@@ -1,28 +1,30 @@
 
-import { getRepository } from '../database/connection';
+import { Repository } from '../database/connection';
 import { Site } from '../entities/Site';
 import { LogService } from './LogService';
 
 export class SiteService {
-  private siteRepository = getRepository<Site>(Site);
+  private siteRepository: Repository<Site>;
   private logService = new LogService();
 
+  constructor() {
+    this.siteRepository = new Repository<Site>('sites');
+  }
+
   async findAll(): Promise<Site[]> {
-    return this.siteRepository.find();
+    return this.siteRepository.findAll();
   }
 
   async findById(id: string): Promise<Site | null> {
-    return this.siteRepository.findOne({ where: { id } });
+    return this.siteRepository.findOne({ id });
   }
 
   async findBySiteId(siteId: string): Promise<Site | null> {
-    return this.siteRepository.findOne({ where: { site_id: siteId } });
+    return this.siteRepository.findOne({ site_id: siteId });
   }
 
   async create(siteData: Partial<Site>, loggedInUserId?: string): Promise<Site> {
-    const site = this.siteRepository.create(siteData);
-    
-    const savedSite = await this.siteRepository.save(site);
+    const savedSite = await this.siteRepository.create(siteData);
 
     // Log the action
     await this.logService.create({
@@ -42,8 +44,7 @@ export class SiteService {
       throw new Error('Site not found');
     }
 
-    Object.assign(site, siteData);
-    const updatedSite = await this.siteRepository.save(site);
+    const updatedSite = await this.siteRepository.update(id, siteData);
 
     // Log the action
     await this.logService.create({

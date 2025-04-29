@@ -1,38 +1,36 @@
 
-import { AppDataSource, getRepository } from "../database/connection";
+import { Repository } from "../database/connection";
 import { AccountLogin } from "../entities/AccountLogin";
 import { LogService } from "./LogService";
 import { webSocketService } from "./WebSocketService";
 
 export class AccountLoginService {
-  private accountLoginRepository = getRepository<AccountLogin>(AccountLogin);
+  private accountLoginRepository: Repository<AccountLogin>;
   private logService = new LogService();
 
+  constructor() {
+    this.accountLoginRepository = new Repository<AccountLogin>('account_logins');
+  }
+
   async findAll(): Promise<AccountLogin[]> {
-    return this.accountLoginRepository.find();
+    return this.accountLoginRepository.findAll();
   }
 
   async findById(id: string): Promise<AccountLogin | null> {
-    return this.accountLoginRepository.findOne({ where: { id } });
+    return this.accountLoginRepository.findOne({ id });
   }
 
   async findBySiteId(siteId: string): Promise<AccountLogin[]> {
-    return this.accountLoginRepository.find({ where: { site_id: siteId } });
+    // For the findBySiteId method, we'll need to implement custom logic
+    const allLogins = await this.findAll();
+    return allLogins.filter(login => login.site_id === siteId);
   }
 
   async create(
     accountLoginData: Partial<AccountLogin>,
     loggedInUserId?: string
   ): Promise<AccountLogin> {
-    if (!AppDataSource.isInitialized) {
-      await AppDataSource.initialize();
-      console.log("Data Source initialized for proxy creation.");
-    }
-    const accountLogin = this.accountLoginRepository.create(accountLoginData);
-
-    const savedAccountLogin = await this.accountLoginRepository.save(
-      accountLogin
-    );
+    const savedAccountLogin = await this.accountLoginRepository.create(accountLoginData);
 
     // Log the action
     await this.logService.create({
@@ -59,10 +57,7 @@ export class AccountLoginService {
       throw new Error("Account login not found");
     }
 
-    Object.assign(accountLogin, accountLoginData);
-    const updatedAccountLogin = await this.accountLoginRepository.save(
-      accountLogin
-    );
+    const updatedAccountLogin = await this.accountLoginRepository.update(id, accountLoginData);
 
     // Log the action
     await this.logService.create({

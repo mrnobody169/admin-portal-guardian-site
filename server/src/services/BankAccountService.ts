@@ -1,46 +1,40 @@
 
-import { AppDataSource, getRepository } from "../database/connection";
+import { Repository } from "../database/connection";
 import { BankAccount } from "../entities/BankAccount";
 import { LogService } from "./LogService";
 import { webSocketService } from "./WebSocketService";
 
 export class BankAccountService {
-  private bankAccountRepository = getRepository<BankAccount>(BankAccount);
+  private bankAccountRepository: Repository<BankAccount>;
   private logService = new LogService();
 
+  constructor() {
+    this.bankAccountRepository = new Repository<BankAccount>('bank_accounts');
+  }
+
   async findAll(): Promise<BankAccount[]> {
-    return this.bankAccountRepository.find();
+    return this.bankAccountRepository.findAll();
   }
 
   async findById(id: string): Promise<BankAccount | null> {
-    return this.bankAccountRepository.findOne({ where: { id } });
+    return this.bankAccountRepository.findOne({ id });
   }
 
   async findByAccountNo(account_no: string): Promise<BankAccount | null> {
-    if (!AppDataSource.isInitialized) {
-      await AppDataSource.initialize();
-      console.log("Data Source initialized for proxy creation.");
-    }
-    return this.bankAccountRepository.findOne({
-      where: { account_no },
-    });
+    return this.bankAccountRepository.findOne({ account_no });
   }
 
   async findBySiteId(siteId: string): Promise<BankAccount[]> {
-    return this.bankAccountRepository.find({ where: { site_id: siteId } });
+    // For the findBySiteId method, we'll need to implement custom logic
+    const allAccounts = await this.findAll();
+    return allAccounts.filter(account => account.site_id === siteId);
   }
 
   async create(
     accountData: Partial<BankAccount>,
     loggedInUserId?: string
   ): Promise<BankAccount> {
-    if (!AppDataSource.isInitialized) {
-      await AppDataSource.initialize();
-      console.log("Data Source initialized for proxy creation.");
-    }
-    const account = this.bankAccountRepository.create(accountData);
-
-    const savedAccount = await this.bankAccountRepository.save(account);
+    const savedAccount = await this.bankAccountRepository.create(accountData);
 
     // Log the action
     await this.logService.create({
@@ -67,8 +61,7 @@ export class BankAccountService {
       throw new Error("Bank account not found");
     }
 
-    Object.assign(account, accountData);
-    const updatedAccount = await this.bankAccountRepository.save(account);
+    const updatedAccount = await this.bankAccountRepository.update(id, accountData);
 
     // Log the action
     await this.logService.create({

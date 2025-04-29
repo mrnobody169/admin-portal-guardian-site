@@ -10,7 +10,8 @@ import { AccountLogin } from '../entities/AccountLogin';
 import { createClient } from '@supabase/supabase-js';
 
 // Determine which database mode to use based on environment variable
-const useSupabase = process.env.DB_MODE === 'supabase';
+const DB_MODE = process.env.DB_MODE || 'postgres';
+const useSupabase = DB_MODE === 'supabase';
 
 // Configure Supabase client if credentials are available and if we're using Supabase mode
 export const supabase = useSupabase && process.env.SUPABASE_URL && process.env.SUPABASE_KEY
@@ -43,12 +44,12 @@ import { runMigrations } from './migration';
 // Initialize connection
 export const createConnection = async () => {
   try {
-    if (supabase) {
-      console.log('Supabase client initialized');
-      console.log(`DB_MODE: ${process.env.DB_MODE}`);
+    console.log(`Database Mode: ${DB_MODE}`);
+    
+    if (useSupabase && supabase) {
+      console.log('Supabase client initialized for repository layer');
     } else {
       console.log('Using local PostgreSQL database');
-      console.log(`DB_MODE: ${process.env.DB_MODE}`);
     }
     
     await AppDataSource.initialize();
@@ -67,3 +68,76 @@ export const createConnection = async () => {
 export const getRepository = <T extends ObjectLiteral>(entity: any) => {
   return AppDataSource.getRepository<T>(entity);
 };
+
+// Repository layer for database abstraction
+export class Repository<T> {
+  entityName: string;
+  
+  constructor(entityName: string) {
+    this.entityName = entityName;
+  }
+  
+  async findAll(): Promise<any[]> {
+    if (useSupabase && supabase) {
+      const { data, error } = await supabase.from(this.entityName).select();
+      if (error) throw error;
+      return data;
+    } else {
+      const repository = AppDataSource.getRepository(this.entityName);
+      return repository.find();
+    }
+  }
+  
+  async findOne(conditions: any): Promise<any> {
+    if (useSupabase && supabase) {
+      // Convert conditions to Supabase filter format
+      let query = supabase.from(this.entityName).select().single();
+      
+      Object.entries(conditions).forEach(([key, value]) => {
+        query = query.eq(key, value);
+      });
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      return data;
+    } else {
+      const repository = AppDataSource.getRepository(this.entityName);
+      return repository.findOne({ where: conditions });
+    }
+  }
+  
+  async create(data: any): Promise<any> {
+    if (useSupabase && supabase) {
+      const { data: result, error } = await supabase.from(this.entityName).insert(data).select().single();
+      if (error) throw error;
+      return result;
+    } else {
+      const repository = AppDataSource.getRepository(this.entityName);
+      const entity = repository.create(data);
+      return repository.save(entity);
+    }
+  }
+  
+  async update(id: string, data: any): Promise<any> {
+    if (useSupabase && supabase) {
+      const { data: result, error } = await supabase.from(this.entityName).update(data).eq('id', id).select().single();
+      if (error) throw error;
+      return result;
+    } else {
+      const repository = AppDataSource.getRepository(this.entityName);
+      await repository.update(id, data);
+      return repository.findOne({ where: { id } });
+    }
+  }
+  
+  async delete(id: string): Promise<void> {
+    if (useSupabase && supabase) {
+      const { error } = await supabase.from(this.entityName).delete().eq('id', id);
+      if (error) throw error;
+    } else {
+      const repository = AppDataSource.getRepository(this.entityName);
+      await repository.delete(id);
+    }
+  }
+}

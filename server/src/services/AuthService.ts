@@ -1,34 +1,84 @@
 
-import jwt from 'jsonwebtoken';
-import { UserService } from './UserService';
-import { LogService } from './LogService';
+import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
+import { Repository } from '../database/connection';
+import { User } from '../entities/User';
+import { supabase } from '../database/connection';
 
 export class AuthService {
-  private userService = new UserService();
-  private logService = new LogService();
-  private jwtSecret = process.env.JWT_SECRET || 'default_secret';
+  private userRepository: Repository<User>;
 
-  async login(username: string, password: string): Promise<{ user: any, token: string }> {
-    // Call the authenticate method from UserService
-    const result = await this.userService.authenticate(username, password);
-    
-    if (!result) {
-      throw new Error('Invalid credentials');
+  constructor() {
+    this.userRepository = new Repository<User>('users');
+  }
+
+  async validateUser(username: string, password: string): Promise<any> {
+    // Try Supabase auth first if available
+    if (supabase) {
+      try {
+        const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithPassword({
+          email: username, // Using username as email
+          password: password,
+        });
+        
+        if (!supabaseError && supabaseData && supabaseData.user) {
+          console.log("Supabase authentication successful");
+          return {
+            id: supabaseData.user.id,
+            username: username,
+            role: 'admin' // Default role, can be customized
+          };
+        } else {
+          console.log("Supabase auth failed, trying local DB");
+        }
+      } catch (error) {
+        console.error("Supabase auth error:", error);
+        // Continue to local auth if Supabase fails
+      }
     }
     
-    // Log the login action
-    await this.logService.create({
-      action: 'login',
-      entity: 'auth',
-      details: { method: 'username' }
-    });
-    
-    // Remove password from the returned user object
-    const { password: _, ...userWithoutPassword } = result.user;
-    
-    return {
-      user: userWithoutPassword,
-      token: result.token
+    // If Supabase auth not available or fails, try local database
+    try {
+      const user = await this.userRepository.findOne({ username });
+      
+      if (!user) {
+        throw new Error('Invalid username or password');
+      }
+      
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      
+      if (!isPasswordValid) {
+        throw new Error('Invalid username or password');
+      }
+      
+      // Don't include password in the returned object
+      const { password: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      console.error("Local auth error:", error);
+      throw error;
+    }
+  }
+
+  generateToken(user: any): string {
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      role: user.role
     };
+    
+    return jwt.sign(
+      payload,
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: process.env.JWT_EXPIRATION || '24h' }
+    );
+  }
+
+  verifyToken(token: string): any {
+    try {
+      return jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    } catch (error) {
+      throw new Error('Invalid token');
+    }
   }
 }

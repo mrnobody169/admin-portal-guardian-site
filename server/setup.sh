@@ -22,7 +22,7 @@ if [ "$use_supabase" = "y" ] || [ "$use_supabase" = "Y" ]; then
   echo "Updating your .env file to use Supabase..."
   
   # Update DB_MODE in .env file
-  sed -i 's/DB_MODE=local/DB_MODE=supabase/g' .env
+  sed -i 's/DB_MODE=postgres/DB_MODE=supabase/g' .env
   
   echo "Make sure you've updated the SUPABASE_URL and SUPABASE_KEY in your .env file."
   
@@ -35,7 +35,7 @@ if [ "$use_supabase" = "y" ] || [ "$use_supabase" = "Y" ]; then
   npm run setup-supabase
 else
   # Update DB_MODE in .env file
-  sed -i 's/DB_MODE=supabase/DB_MODE=local/g' .env
+  sed -i 's/DB_MODE=supabase/DB_MODE=postgres/g' .env
   
   # Start the database
   echo "Starting local database with Docker..."
