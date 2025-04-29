@@ -16,7 +16,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD || 'admin',
   database: process.env.DB_NAME || 'crawl',
   synchronize: false, // Set to false in production
-  logging: process.env.NODE_ENV !== 'production',
+  logging: false,
   entities: [User, BankAccount, Log, Site, AccountLogin],
 });
 

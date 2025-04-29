@@ -110,7 +110,7 @@ export class UserService {
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
       jwtSecret,
-      { expiresIn: process.env.JWT_EXPIRATION || '24h' }
+      { expiresIn: '24h' }
     );
 
     // Log the action

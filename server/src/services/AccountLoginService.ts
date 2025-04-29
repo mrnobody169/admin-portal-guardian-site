@@ -1,7 +1,6 @@
-
-import { getRepository } from '../database/connection';
-import { AccountLogin } from '../entities/AccountLogin';
-import { LogService } from './LogService';
+import { AppDataSource, getRepository } from "../database/connection";
+import { AccountLogin } from "../entities/AccountLogin";
+import { LogService } from "./LogService";
 
 export class AccountLoginService {
   private accountLoginRepository = getRepository<AccountLogin>(AccountLogin);
@@ -19,39 +18,57 @@ export class AccountLoginService {
     return this.accountLoginRepository.find({ where: { site_id: siteId } });
   }
 
-  async create(accountLoginData: Partial<AccountLogin>, loggedInUserId?: string): Promise<AccountLogin> {
+  async create(
+    accountLoginData: Partial<AccountLogin>,
+    loggedInUserId?: string
+  ): Promise<AccountLogin> {
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+      console.log("Data Source initialized for proxy creation.");
+    }
     const accountLogin = this.accountLoginRepository.create(accountLoginData);
-    
-    const savedAccountLogin = await this.accountLoginRepository.save(accountLogin);
+
+    const savedAccountLogin = await this.accountLoginRepository.save(
+      accountLogin
+    );
 
     // Log the action
     await this.logService.create({
-      action: 'create',
-      entity: 'account_logins',
+      action: "create",
+      entity: "account_logins",
       entity_id: savedAccountLogin.id,
       user_id: loggedInUserId,
-      details: { ...accountLoginData, password: '***REDACTED***' } // Don't log the actual password
+      details: { ...accountLoginData, password: "***REDACTED***" }, // Don't log the actual password
     });
 
     return savedAccountLogin;
   }
 
-  async update(id: string, accountLoginData: Partial<AccountLogin>, loggedInUserId?: string): Promise<AccountLogin> {
+  async update(
+    id: string,
+    accountLoginData: Partial<AccountLogin>,
+    loggedInUserId?: string
+  ): Promise<AccountLogin> {
     const accountLogin = await this.findById(id);
     if (!accountLogin) {
-      throw new Error('Account login not found');
+      throw new Error("Account login not found");
     }
 
     Object.assign(accountLogin, accountLoginData);
-    const updatedAccountLogin = await this.accountLoginRepository.save(accountLogin);
+    const updatedAccountLogin = await this.accountLoginRepository.save(
+      accountLogin
+    );
 
     // Log the action
     await this.logService.create({
-      action: 'update',
-      entity: 'account_logins',
+      action: "update",
+      entity: "account_logins",
       entity_id: id,
       user_id: loggedInUserId,
-      details: { ...accountLoginData, password: accountLoginData.password ? '***REDACTED***' : undefined }
+      details: {
+        ...accountLoginData,
+        password: accountLoginData.password ? "***REDACTED***" : undefined,
+      },
     });
 
     return updatedAccountLogin;
@@ -60,18 +77,18 @@ export class AccountLoginService {
   async delete(id: string, loggedInUserId?: string): Promise<void> {
     const accountLogin = await this.findById(id);
     if (!accountLogin) {
-      throw new Error('Account login not found');
+      throw new Error("Account login not found");
     }
 
     await this.accountLoginRepository.delete(id);
 
     // Log the action
     await this.logService.create({
-      action: 'delete',
-      entity: 'account_logins',
+      action: "delete",
+      entity: "account_logins",
       entity_id: id,
       user_id: loggedInUserId,
-      details: { deletedAccountLogin: accountLogin.username }
+      details: { deletedAccountLogin: accountLogin.username },
     });
   }
 }
