@@ -19,6 +19,11 @@ read -p "Do you want to use Supabase instead of local database? (y/n): " use_sup
 
 if [ "$use_supabase" = "y" ] || [ "$use_supabase" = "Y" ]; then
   echo "You've chosen to use Supabase!"
+  echo "Updating your .env file to use Supabase..."
+  
+  # Update DB_MODE in .env file
+  sed -i 's/DB_MODE=local/DB_MODE=supabase/g' .env
+  
   echo "Make sure you've updated the SUPABASE_URL and SUPABASE_KEY in your .env file."
   
   # Build the project
@@ -29,6 +34,9 @@ if [ "$use_supabase" = "y" ] || [ "$use_supabase" = "Y" ]; then
   echo "Setting up Supabase tables and initial data..."
   npm run setup-supabase
 else
+  # Update DB_MODE in .env file
+  sed -i 's/DB_MODE=supabase/DB_MODE=local/g' .env
+  
   # Start the database
   echo "Starting local database with Docker..."
   docker-compose up -d

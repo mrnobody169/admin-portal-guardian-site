@@ -9,8 +9,11 @@ import { Site } from '../entities/Site';
 import { AccountLogin } from '../entities/AccountLogin';
 import { createClient } from '@supabase/supabase-js';
 
-// Configure Supabase client if credentials are available
-export const supabase = process.env.SUPABASE_URL && process.env.SUPABASE_KEY
+// Determine which database mode to use based on environment variable
+const useSupabase = process.env.DB_MODE === 'supabase';
+
+// Configure Supabase client if credentials are available and if we're using Supabase mode
+export const supabase = useSupabase && process.env.SUPABASE_URL && process.env.SUPABASE_KEY
   ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
   : null;
 
@@ -26,8 +29,8 @@ export const AppDataSource = new DataSource({
   logging: false,
   entities: [User, BankAccount, Log, Site, AccountLogin],
   // If using Supabase, we can set SSL to true
-  ssl: process.env.SUPABASE_URL ? true : false,
-  extra: process.env.SUPABASE_URL ? {
+  ssl: useSupabase,
+  extra: useSupabase ? {
     ssl: {
       rejectUnauthorized: false
     }
@@ -42,6 +45,8 @@ export const createConnection = async () => {
   try {
     if (supabase) {
       console.log('Supabase client initialized');
+    } else {
+      console.log('Using local PostgreSQL database');
     }
     
     await AppDataSource.initialize();
