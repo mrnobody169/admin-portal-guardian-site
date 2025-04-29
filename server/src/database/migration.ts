@@ -1,115 +1,121 @@
+
 import { AppDataSource } from './connection';
 import { Site } from '../entities/Site';
 import { User } from '../entities/User';
 import * as bcrypt from 'bcrypt';
 
 export const runMigrations = async () => {
-  // Make sure the database is initialized
-  if (!AppDataSource.isInitialized) {
-    await AppDataSource.initialize();
-  }
-  
-  const queryRunner = AppDataSource.createQueryRunner();
-  
   try {
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    // Make sure the database is initialized
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+    }
     
-    console.log('Running database migrations...');
+    const queryRunner = AppDataSource.createQueryRunner();
+    
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      
+      console.log('Running database migrations...');
 
-    // Create users table - FIRST (admin users) - Ensure column names match the entity
-    await queryRunner.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        username TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL,
-        email TEXT,
-        name TEXT,
-        role TEXT NOT NULL DEFAULT 'admin',
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-      );
-    `);
-    
-    // Create sites table - SECOND
-    await queryRunner.query(`
-      CREATE TABLE IF NOT EXISTS sites (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        site_name TEXT NOT NULL,
-        site_id TEXT NOT NULL UNIQUE,
-        status TEXT NOT NULL DEFAULT 'active',
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-      );
-    `);
-    
-    // Create bank_accounts table - THIRD (depends on sites)
-    await queryRunner.query(`
-      CREATE TABLE IF NOT EXISTS bank_accounts (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        account_no TEXT NOT NULL,
-        account_holder TEXT NOT NULL,
-        bank_name TEXT NOT NULL,
-        site_id TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'active',
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
-      );
-    `);
-    
-    // Create account_logins table - FOURTH (depends on sites)
-    await queryRunner.query(`
-      CREATE TABLE IF NOT EXISTS account_logins (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        username TEXT NOT NULL,
-        password TEXT NOT NULL,
-        token TEXT,
-        site_id TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'active',
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
-      );
-    `);
-    
-    // Create logs table - FIFTH (modified to remove user_id foreign key)
-    await queryRunner.query(`
-      CREATE TABLE IF NOT EXISTS logs (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        action TEXT NOT NULL,
-        entity TEXT NOT NULL,
-        entity_id TEXT,
-        user_id TEXT,
-        details JSONB,
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-      );
-    `);
-    
-    // Create indexes for faster lookups
-    await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS idx_bank_accounts_site_id ON bank_accounts(site_id);
-      CREATE INDEX IF NOT EXISTS idx_account_logins_site_id ON account_logins(site_id);
-      CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);
-      CREATE INDEX IF NOT EXISTS idx_logs_entity ON logs(entity);
-      CREATE INDEX IF NOT EXISTS idx_logs_user_id ON logs(user_id);
-    `);
-    
-    await queryRunner.commitTransaction();
-    console.log('Database migrations completed successfully');
-    
-    // After migrations are done, create the three specified sites if they don't exist yet
-    await createDefaultSites();
-    
-    // Add default admin user
-    await createAdminUser();
-    
+      // Create users table - FIRST (admin users) - Ensure column names match the entity
+      await queryRunner.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          username TEXT NOT NULL UNIQUE,
+          password TEXT NOT NULL,
+          email TEXT,
+          name TEXT,
+          role TEXT NOT NULL DEFAULT 'admin',
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        );
+      `);
+      
+      // Create sites table - SECOND
+      await queryRunner.query(`
+        CREATE TABLE IF NOT EXISTS sites (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          site_name TEXT NOT NULL,
+          site_id TEXT NOT NULL UNIQUE,
+          status TEXT NOT NULL DEFAULT 'active',
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        );
+      `);
+      
+      // Create bank_accounts table - THIRD (depends on sites)
+      await queryRunner.query(`
+        CREATE TABLE IF NOT EXISTS bank_accounts (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          account_no TEXT NOT NULL,
+          account_holder TEXT NOT NULL,
+          bank_name TEXT NOT NULL,
+          site_id TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'active',
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
+        );
+      `);
+      
+      // Create account_logins table - FOURTH (depends on sites)
+      await queryRunner.query(`
+        CREATE TABLE IF NOT EXISTS account_logins (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          username TEXT NOT NULL,
+          password TEXT NOT NULL,
+          token TEXT,
+          site_id TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'active',
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
+        );
+      `);
+      
+      // Create logs table - FIFTH (modified to remove user_id foreign key)
+      await queryRunner.query(`
+        CREATE TABLE IF NOT EXISTS logs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          action TEXT NOT NULL,
+          entity TEXT NOT NULL,
+          entity_id TEXT,
+          user_id TEXT,
+          details JSONB,
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        );
+      `);
+      
+      // Create indexes for faster lookups
+      await queryRunner.query(`
+        CREATE INDEX IF NOT EXISTS idx_bank_accounts_site_id ON bank_accounts(site_id);
+        CREATE INDEX IF NOT EXISTS idx_account_logins_site_id ON account_logins(site_id);
+        CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);
+        CREATE INDEX IF NOT EXISTS idx_logs_entity ON logs(entity);
+        CREATE INDEX IF NOT EXISTS idx_logs_user_id ON logs(user_id);
+      `);
+      
+      await queryRunner.commitTransaction();
+      console.log('Database migrations completed successfully');
+      
+      // After migrations are done, create the three specified sites if they don't exist yet
+      await createDefaultSites();
+      
+      // We'll add the default admin user in setupDb.ts instead
+      // await createAdminUser();
+      
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error('Error running migrations:', error);
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   } catch (error) {
-    await queryRunner.rollbackTransaction();
-    console.error('Error running migrations:', error);
+    console.error('Error in migration process:', error);
     throw error;
-  } finally {
-    await queryRunner.release();
   }
 };
 
@@ -151,42 +157,6 @@ async function createDefaultSites() {
     console.log('Default sites setup completed');
   } catch (error) {
     console.error('Error creating default sites:', error);
-    throw error;
-  }
-}
-
-// Function to create admin user
-async function createAdminUser() {
-  try {
-    const userRepository = AppDataSource.getRepository(User);
-    
-    // Check if admin already exists
-    const existingAdmin = await userRepository.findOne({ 
-      where: { username: 'admin' } 
-    });
-    
-    if (!existingAdmin) {
-      // Hash the password
-      const password = 'admin';
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      
-      // Create the admin user
-      const newAdmin = userRepository.create({
-        username: 'admin',
-        password: hashedPassword,
-        email: 'admin@example.com',
-        name: 'Admin User',
-        role: 'admin'
-      });
-      
-      await userRepository.save(newAdmin);
-      console.log('Created default admin user (username: admin, password: admin)');
-    } else {
-      console.log('Admin user already exists');
-    }
-  } catch (error) {
-    console.error('Error creating admin user:', error);
     throw error;
   }
 }

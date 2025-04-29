@@ -9,6 +9,9 @@ import { createConnection } from './database/connection';
 import { setupRoutes } from './routes';
 import fs from 'fs';
 import path from 'path';
+import { runMigrations } from './database/migration';
+import http from 'http';
+import { WebSocketService } from './services/WebSocketService';
 
 // Load environment variables
 dotenv.config();
@@ -86,6 +89,9 @@ app.get('/', (req, res) => {
   res.send('API Server is running. Visit <a href="/api-docs">API Documentation</a> or <a href="/api-docs.json">Download Swagger JSON</a>');
 });
 
+// Create HTTP server
+const server = http.createServer(app);
+
 // Initialize DB connection and start server
 const startServer = async () => {
   try {
@@ -96,8 +102,14 @@ const startServer = async () => {
     // Setup API routes
     setupRoutes(app);
 
+    // Initialize WebSocket service if enabled
+    if (process.env.WS_ENABLED === 'true') {
+      const wsService = new WebSocketService(server);
+      console.log('WebSocket server initialized');
+    }
+
     // Start the server
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Swagger API documentation available at http://localhost:${PORT}/api-docs`);
       console.log(`Swagger JSON available at http://localhost:${PORT}/api-docs.json`);

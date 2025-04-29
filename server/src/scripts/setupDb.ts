@@ -14,6 +14,24 @@ const setupInitialData = async () => {
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
     }
+
+    console.log('Checking if tables exist...');
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    
+    // Check if users table exists
+    const tableExists = await queryRunner.query(
+      `SELECT EXISTS (
+         SELECT FROM information_schema.tables 
+         WHERE table_schema = 'public' 
+         AND table_name = 'users'
+       )`
+    );
+    
+    if (!tableExists[0].exists) {
+      console.error('Error: Users table does not exist. Please run migrations first.');
+      process.exit(1);
+    }
     
     const userRepo = AppDataSource.getRepository(User);
     const siteRepo = AppDataSource.getRepository(Site);

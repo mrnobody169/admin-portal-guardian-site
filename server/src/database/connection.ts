@@ -21,18 +21,13 @@ export const AppDataSource = new DataSource({
   entities: [User, BankAccount, Log, Site, AccountLogin]
 });
 
-// Import migrations
-import { runMigrations } from './migration';
-
 // Initialize connection
 export const createConnection = async () => {
   try {
     console.log('Using local PostgreSQL database');
     
     await AppDataSource.initialize();
-    
-    // Run migrations to ensure database schema
-    await runMigrations();
+    console.log('Database connection established');
     
     return AppDataSource;
   } catch (error) {
