@@ -1,4 +1,3 @@
-
 import { AppDataSource } from './connection';
 import { Site } from '../entities/Site';
 import { User } from '../entities/User';
@@ -18,7 +17,7 @@ export const runMigrations = async () => {
     
     console.log('Running database migrations...');
 
-    // Create users table - FIRST (admin users)
+    // Create users table - FIRST (admin users) - Ensure column names match the entity
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

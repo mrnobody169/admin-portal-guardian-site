@@ -24,6 +24,10 @@ sleep 5
 echo "Building the project..."
 npm run build
 
+# Clean the database before running migrations
+echo "Cleaning the database (dropping tables if they exist)..."
+npm run clean-db
+
 # Run database migrations
 echo "Running database migrations..."
 npm run migrate
