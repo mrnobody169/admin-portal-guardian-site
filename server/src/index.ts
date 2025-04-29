@@ -53,7 +53,7 @@ const swaggerOptions = {
     }]
   },
   apis: [
-    './src/controllers/*.ts', 
+    './src/controllers/*.ts',
     './src/entities/*.ts',
     './src/routes/*.ts'
   ],
@@ -98,13 +98,14 @@ const startServer = async () => {
     // Connect to PostgreSQL with TypeORM
     const connection = await createConnection();
     console.log('Connected to PostgreSQL database');
-    
+
     // Setup API routes
     setupRoutes(app);
 
     // Initialize WebSocket service if enabled
     if (process.env.WS_ENABLED === 'true') {
-      const wsService = new WebSocketService(server);
+      const wsService = new WebSocketService();
+      wsService.initialize(server);
       console.log('WebSocket server initialized');
     }
 

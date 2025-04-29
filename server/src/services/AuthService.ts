@@ -14,17 +14,17 @@ export class AuthService {
   async validateUser(username: string, password: string): Promise<any> {
     try {
       const user = await this.userRepository.findOne({ username });
-      
+
       if (!user) {
         throw new Error('Invalid username or password');
       }
-      
+
       const isPasswordValid = await bcrypt.compare(password, user.password);
-      
+
       if (!isPasswordValid) {
         throw new Error('Invalid username or password');
       }
-      
+
       // Don't include password in the returned object
       const { password: _, ...userWithoutPassword } = user;
       return userWithoutPassword;
@@ -40,11 +40,11 @@ export class AuthService {
       username: user.username,
       role: user.role
     };
-    
+
     return jwt.sign(
       payload,
       process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: process.env.JWT_EXPIRATION || '24h' }
+      { expiresIn: '24h' }
     );
   }
 

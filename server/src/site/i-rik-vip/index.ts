@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 import { AxiosProxyConfig } from "axios";
 import { delay } from "../../utils";
 import { CrawlService } from "../../services/CrawlService";
-import { ISignUpResponse } from "../../interfaces";
 dotenv.config();
 
 export const runIRikvipCc = async (proxy: AxiosProxyConfig | false = false) => {
