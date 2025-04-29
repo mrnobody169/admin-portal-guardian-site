@@ -1,8 +1,8 @@
-import { ReactNode, useState } from 'react';
+
+import { ReactNode, useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { toast } from '@/components/ui/use-toast';
 import { 
   Database, 
   List, 
@@ -11,6 +11,7 @@ import {
   Building,
   User
 } from 'lucide-react';
+import { authService } from '@/services/authService';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -41,17 +42,26 @@ const SidebarItem = ({ to, icon: Icon, label }: SidebarItemProps) => (
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : { username: 'Admin' };
+    return authService.getCurrentUser() || { username: 'Admin', role: 'admin' };
   });
 
+  useEffect(() => {
+    // Update user if it changes in localStorage
+    const handleStorageChange = () => {
+      const currentUser = authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    toast({
-      title: "Logged out successfully",
-    });
-    navigate('/login');
+    authService.logout(navigate);
   };
 
   return (
@@ -75,11 +85,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="absolute bottom-0 left-0 w-64 px-4 py-4 border-t border-border">
           <div className="mb-2 flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="font-medium text-sm">{user.username.charAt(0).toUpperCase()}</span>
+              <span className="font-medium text-sm">{user.username?.charAt(0).toUpperCase() || 'A'}</span>
             </div>
             <div>
-              <p className="text-sm font-medium">{user.username}</p>
-              <p className="text-xs text-muted-foreground">{user.role}</p>
+              <p className="text-sm font-medium">{user.username || 'Admin'}</p>
+              <p className="text-xs text-muted-foreground">{user.role || 'admin'}</p>
             </div>
           </div>
           <Separator className="my-2" />

@@ -5,16 +5,14 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { apiService } from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
-import { Json } from "@/integrations/supabase/types";
+import { Loader2 } from "lucide-react";
 
-// Update the LogEntry interface to make user_id optional
 interface LogEntry {
   id: string;
   action: string;
   entity: string;
   entity_id: string;
-  user_id?: string; // Made optional to match usage
-  details: Json;
+  details: any;
   created_at: string;
 }
 
@@ -52,7 +50,9 @@ export default function Logs() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center p-4">Loading logs...</div>
+            <div className="flex justify-center p-4">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
           ) : (
             <Table>
               <TableHeader>
@@ -60,7 +60,7 @@ export default function Logs() {
                   <TableHead>Date</TableHead>
                   <TableHead>Action</TableHead>
                   <TableHead>Entity</TableHead>
-                  <TableHead>User ID</TableHead>
+                  <TableHead>Entity ID</TableHead>
                   <TableHead>Details</TableHead>
                 </TableRow>
               </TableHeader>
@@ -79,7 +79,7 @@ export default function Logs() {
                       </TableCell>
                       <TableCell>{log.action}</TableCell>
                       <TableCell>{log.entity}</TableCell>
-                      <TableCell>{log.user_id || "N/A"}</TableCell>
+                      <TableCell>{log.entity_id || "N/A"}</TableCell>
                       <TableCell>
                         {log.details ? JSON.stringify(log.details).substring(0, 50) + "..." : "N/A"}
                       </TableCell>

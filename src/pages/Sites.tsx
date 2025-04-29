@@ -56,8 +56,8 @@ const Sites = () => {
     const fetchSites = async () => {
       try {
         setIsLoading(true);
-        const { sites } = await apiService.getSites();
-        setSites(sites || []);
+        const response = await apiService.getSites();
+        setSites(response.sites || []);
       } catch (error) {
         console.error('Failed to fetch sites:', error);
         toast({
@@ -103,28 +103,29 @@ const Sites = () => {
     }
 
     try {
+      setIsLoading(true);
       if (currentSite.id) {
         // Update existing site
-        const { site } = await apiService.updateSite(currentSite.id, {
+        const response = await apiService.updateSite(currentSite.id, {
           site_name: currentSite.site_name,
           site_id: currentSite.site_id,
           status: currentSite.status
         });
         
-        if (site) {
-          setSites(sites.map(s => s.id === site.id ? site : s));
+        if (response && response.site) {
+          setSites(sites.map(s => s.id === response.site.id ? response.site : s));
           toast({ title: "Site updated successfully" });
         }
       } else {
         // Add new site
-        const { site } = await apiService.createSite({
+        const response = await apiService.createSite({
           site_name: currentSite.site_name,
           site_id: currentSite.site_id,
           status: currentSite.status
         });
         
-        if (site) {
-          setSites([...sites, site]);
+        if (response && response.site) {
+          setSites([...sites, response.site]);
           toast({ title: "Site added successfully" });
         }
       }
@@ -136,6 +137,8 @@ const Sites = () => {
         description: "Failed to save site", 
         variant: "destructive" 
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -143,6 +146,7 @@ const Sites = () => {
     if (!currentSite?.id) return;
     
     try {
+      setIsLoading(true);
       await apiService.deleteSite(currentSite.id);
       setSites(sites.filter(site => site.id !== currentSite.id));
       setIsDeleteDialogOpen(false);
@@ -154,6 +158,8 @@ const Sites = () => {
         description: "Failed to delete site", 
         variant: "destructive" 
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -296,10 +302,12 @@ const Sites = () => {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isLoading}>
               Cancel
             </Button>
-            <Button onClick={handleSaveSite}>Save</Button>
+            <Button onClick={handleSaveSite} disabled={isLoading}>
+              {isLoading ? 'Saving...' : 'Save'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -314,9 +322,13 @@ const Sites = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
-              Delete
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete} 
+              className="bg-destructive text-destructive-foreground"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

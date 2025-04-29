@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -23,12 +24,17 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
     setIsLoading(true);
 
     try {
-      // In a real application with Supabase, we'd use the email/password
-      // For now, we'll keep the admin/admin functionality for demo
-      if (username === 'admin' && password === 'admin') {
+      // Call the API to authenticate the user
+      const response = await apiService.login(username, password);
+      
+      if (response && response.session) {
         // Store auth token
-        localStorage.setItem('authToken', 'demo-token');
-        localStorage.setItem('user', JSON.stringify({ username, role: 'admin' }));
+        localStorage.setItem('authToken', response.session.access_token);
+        
+        // Store user info
+        if (response.user) {
+          localStorage.setItem('user', JSON.stringify(response.user));
+        }
         
         toast({
           title: "Login successful",
@@ -38,38 +44,13 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
         onLoginSuccess();
         navigate('/dashboard');
       } else {
-        // Try to login via API - this would work when we add users to Supabase
-        try {
-          // Note: username is used as email here
-          const response = await apiService.login(username, password);
-          
-          if (response.session) {
-            localStorage.setItem('authToken', response.session.access_token);
-            localStorage.setItem('user', JSON.stringify(response.user));
-            
-            toast({
-              title: "Login successful",
-              description: "Welcome back to the admin portal",
-            });
-            
-            onLoginSuccess();
-            navigate('/dashboard');
-          } else {
-            throw new Error("Invalid credentials");
-          }
-        } catch (error) {
-          toast({
-            title: "Authentication failed",
-            description: "Invalid username or password",
-            variant: "destructive",
-          });
-        }
+        throw new Error("Invalid response from server");
       }
     } catch (error) {
       console.error("Login error:", error);
       toast({
         title: "Authentication failed",
-        description: "An error occurred during login",
+        description: "Invalid username or password",
         variant: "destructive",
       });
     } finally {
