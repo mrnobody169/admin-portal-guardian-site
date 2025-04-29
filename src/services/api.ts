@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 
 // API service for frontend to communicate with backend
@@ -6,7 +5,7 @@ class ApiService {
   private apiUrl = "http://localhost:4000/api"; // Using local server
 
   // Add auth token if available
-  private getHeaders() {
+  getHeaders() {
     const token = localStorage.getItem('authToken');
 
     return {

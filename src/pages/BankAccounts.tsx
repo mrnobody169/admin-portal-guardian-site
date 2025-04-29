@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -124,22 +123,17 @@ const BankAccounts = () => {
 
     try {
       if (currentAccount.id) {
-        // Update existing account - Add this method to the API service
-        const response = await fetch(`http://localhost:4000/api/bank-accounts/${currentAccount.id}`, {
-          method: "PUT",
-          headers: await apiService.getHeaders(),
-          body: JSON.stringify({
-            account_no: currentAccount.account_no,
-            account_holder: currentAccount.account_holder,
-            bank_name: currentAccount.bank_name,
-            site_id: currentAccount.site_id,
-            status: currentAccount.status
-          }),
+        // Update existing account using ApiService
+        const { account } = await apiService.updateBankAccount(currentAccount.id, {
+          account_no: currentAccount.account_no,
+          account_holder: currentAccount.account_holder,
+          bank_name: currentAccount.bank_name,
+          site_id: currentAccount.site_id,
+          status: currentAccount.status
         });
-        const data = await response.json();
         
-        if (data.account) {
-          setAccounts(accounts.map(a => a.id === data.account.id ? data.account : a));
+        if (account) {
+          setAccounts(accounts.map(a => a.id === account.id ? account : a));
           toast({ title: "Bank account updated successfully" });
         }
       } else {
@@ -171,12 +165,8 @@ const BankAccounts = () => {
     if (!currentAccount?.id) return;
     
     try {
-      // Delete account - Add this method to the API service
-      const response = await fetch(`http://localhost:4000/api/bank-accounts/${currentAccount.id}`, {
-        method: "DELETE",
-        headers: await apiService.getHeaders(),
-      });
-      await response.json();
+      // Delete account using ApiService
+      await apiService.deleteBankAccount(currentAccount.id);
       
       setAccounts(accounts.filter(account => account.id !== currentAccount.id));
       setIsDeleteDialogOpen(false);
