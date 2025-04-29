@@ -60,8 +60,8 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use(cors());
 app.use(express.json());
 
-// Swagger documentation route
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Swagger documentation route - Fixed TypeScript error
+app.use('/api-docs', swaggerUi.serve as express.RequestHandler[], swaggerUi.setup(swaggerSpec));
 
 // Root route
 app.get('/', (req, res) => {
