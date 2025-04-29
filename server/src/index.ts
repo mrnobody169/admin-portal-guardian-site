@@ -60,8 +60,8 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use(cors());
 app.use(express.json());
 
-// Swagger documentation route - Fixed TypeScript error by using unknown casting
-app.use('/api-docs', swaggerUi.serve as unknown as express.RequestHandler[], swaggerUi.setup(swaggerSpec));
+// Swagger documentation route - Sử dụng cách tiếp cận tương thích
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Root route
 app.get('/', (req, res) => {
