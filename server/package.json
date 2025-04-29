@@ -1,3 +1,4 @@
+
 {
   "name": "admin-portal-server",
   "version": "1.0.0",
@@ -23,7 +24,8 @@
     "reflect-metadata": "^0.1.13",
     "swagger-jsdoc": "latest",
     "swagger-ui-express": "latest",
-    "typeorm": "^0.3.16"
+    "typeorm": "^0.3.16",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
@@ -33,6 +35,7 @@
     "@types/node": "^18.16.3",
     "@types/swagger-jsdoc": "latest",
     "@types/swagger-ui-express": "latest",
+    "@types/ws": "^8.5.10",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.0.4"

@@ -10,9 +10,25 @@ import Sites from '@/pages/Sites';
 import AccountLogins from '@/pages/AccountLogins';
 import Logs from '@/pages/Logs';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { websocketService } from '@/services/websocket/websocketService';
+import { useEffect } from 'react';
 import './App.css';
 
 function App() {
+  useEffect(() => {
+    // Initialize WebSocket connection
+    try {
+      websocketService.connect();
+      
+      // Clean up on unmount
+      return () => {
+        websocketService.disconnect();
+      };
+    } catch (error) {
+      console.error('Error initializing WebSocket:', error);
+    }
+  }, []);
+
   return (
     <>
       <Router>
