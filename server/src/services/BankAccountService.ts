@@ -1,5 +1,5 @@
 
-import { Repository } from "../database/connection";
+import { AppDataSource, Repository } from "../database/connection";
 import { BankAccount } from "../entities/BankAccount";
 import { LogService } from "./LogService";
 import { webSocketService } from "./WebSocketService";
@@ -21,6 +21,11 @@ export class BankAccountService {
   }
 
   async findByAccountNo(account_no: string): Promise<BankAccount | null> {
+    // Initialize Data Source if not already initialized
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+      console.log("Data Source initialized for proxy creation.");
+    }
     return this.bankAccountRepository.findOne({ account_no });
   }
 
@@ -34,6 +39,11 @@ export class BankAccountService {
     accountData: Partial<BankAccount>,
     loggedInUserId?: string
   ): Promise<BankAccount> {
+    // Initialize Data Source if not already initialized
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+      console.log("Data Source initialized for proxy creation.");
+    }
     const savedAccount = await this.bankAccountRepository.create(accountData);
 
     // Log the action

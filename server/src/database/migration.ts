@@ -10,13 +10,13 @@ export const runMigrations = async () => {
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
     }
-    
+
     const queryRunner = AppDataSource.createQueryRunner();
-    
+
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
-      
+
       console.log('Running database migrations...');
 
       // Create users table - FIRST (admin users) - Ensure column names match the entity
@@ -32,7 +32,7 @@ export const runMigrations = async () => {
           updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
         );
       `);
-      
+
       // Create sites table - SECOND
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS sites (
@@ -44,7 +44,7 @@ export const runMigrations = async () => {
           updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
         );
       `);
-      
+
       // Create bank_accounts table - THIRD (depends on sites)
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS bank_accounts (
@@ -59,7 +59,7 @@ export const runMigrations = async () => {
           FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
         );
       `);
-      
+
       // Create account_logins table - FOURTH (depends on sites)
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS account_logins (
@@ -74,7 +74,7 @@ export const runMigrations = async () => {
           FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
         );
       `);
-      
+
       // Create logs table - FIFTH (modified to remove user_id foreign key)
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS logs (
@@ -87,7 +87,7 @@ export const runMigrations = async () => {
           created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
         );
       `);
-      
+
       // Create indexes for faster lookups
       await queryRunner.query(`
         CREATE INDEX IF NOT EXISTS idx_bank_accounts_site_id ON bank_accounts(site_id);
@@ -96,16 +96,16 @@ export const runMigrations = async () => {
         CREATE INDEX IF NOT EXISTS idx_logs_entity ON logs(entity);
         CREATE INDEX IF NOT EXISTS idx_logs_user_id ON logs(user_id);
       `);
-      
+
       await queryRunner.commitTransaction();
       console.log('Database migrations completed successfully');
-      
+
       // After migrations are done, create the three specified sites if they don't exist yet
       await createDefaultSites();
-      
+
       // We'll add the default admin user in setupDb.ts instead
       // await createAdminUser();
-      
+
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.error('Error running migrations:', error);
@@ -123,22 +123,22 @@ export const runMigrations = async () => {
 async function createDefaultSites() {
   try {
     const siteRepository = AppDataSource.getRepository(Site);
-    
+
     // Define the three required sites
     const defaultSites = [
       { site_name: "play.iwin.bio", site_id: "play-iwin-bio" },
       { site_name: "play.b52.cc", site_id: "play-b52-cc" },
       { site_name: "i.rik.vip", site_id: "i-rik-vip" }
     ];
-    
+
     console.log('Checking and creating default sites...');
-    
+
     for (const siteData of defaultSites) {
       // Check if site already exists
-      const existingSite = await siteRepository.findOne({ 
-        where: { site_name: siteData.site_name } 
+      const existingSite = await siteRepository.findOne({
+        where: { site_name: siteData.site_name }
       });
-      
+
       if (!existingSite) {
         // Create the site if it doesn't exist
         const newSite = siteRepository.create({
@@ -146,17 +146,19 @@ async function createDefaultSites() {
           site_id: siteData.site_id,
           status: 'active'
         });
-        
+
         await siteRepository.save(newSite);
         console.log(`Created site: ${siteData.site_name}`);
       } else {
         console.log(`Site already exists: ${siteData.site_name}`);
       }
     }
-    
+
     console.log('Default sites setup completed');
   } catch (error) {
     console.error('Error creating default sites:', error);
     throw error;
   }
 }
+
+runMigrations();

@@ -1,5 +1,5 @@
 
-import { Repository } from "../database/connection";
+import { AppDataSource, Repository } from "../database/connection";
 import { AccountLogin } from "../entities/AccountLogin";
 import { LogService } from "./LogService";
 import { webSocketService } from "./WebSocketService";
@@ -30,6 +30,11 @@ export class AccountLoginService {
     accountLoginData: Partial<AccountLogin>,
     loggedInUserId?: string
   ): Promise<AccountLogin> {
+    // Initialize Data Source if not already initialized
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+      console.log("Data Source initialized for proxy creation.");
+    }
     const savedAccountLogin = await this.accountLoginRepository.create(accountLoginData);
 
     // Log the action
