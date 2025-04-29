@@ -45,8 +45,10 @@ export const createConnection = async () => {
   try {
     if (supabase) {
       console.log('Supabase client initialized');
+      console.log(`DB_MODE: ${process.env.DB_MODE}`);
     } else {
       console.log('Using local PostgreSQL database');
+      console.log(`DB_MODE: ${process.env.DB_MODE}`);
     }
     
     await AppDataSource.initialize();

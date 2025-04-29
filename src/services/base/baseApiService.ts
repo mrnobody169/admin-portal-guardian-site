@@ -6,6 +6,15 @@ export class BaseApiService {
   protected apiUrl = "http://localhost:4000/api";
   protected supabase = supabase;
 
+  constructor() {
+    // Log Supabase availability at initialization
+    if (this.supabase) {
+      console.log('Supabase client available in BaseApiService');
+    } else {
+      console.log('Supabase client not available, will use local API');
+    }
+  }
+
   // Add auth token if available
   getHeaders() {
     const token = localStorage.getItem('authToken');
@@ -20,7 +29,9 @@ export class BaseApiService {
   protected async handleResponse(response: Response) {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || 'API request failed');
+      const errorMessage = errorData.error || 'API request failed';
+      console.error('API error:', errorMessage);
+      throw new Error(errorMessage);
     }
 
     return response.json();

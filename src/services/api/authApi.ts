@@ -1,24 +1,35 @@
 
 import { BaseApiService } from "../base/baseApiService";
-import { supabase } from "@/integrations/supabase/client";
+import { toast } from '@/components/ui/use-toast';
 
 class AuthApiService extends BaseApiService {
   async login(username: string, password: string) {
     try {
-      // Try using Supabase for authentication first
-      const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithPassword({
-        email: username,  // We're using username as email here
-        password: password,
-      });
-      
-      if (!supabaseError && supabaseData) {
-        return {
-          session: supabaseData.session,
-          user: supabaseData.user
-        };
+      // Check if we should use Supabase based on the DB_MODE
+      if (this.supabase) {
+        try {
+          console.log("Attempting Supabase authentication");
+          const { data: supabaseData, error: supabaseError } = await this.supabase.auth.signInWithPassword({
+            email: username,  // We're using username as email here
+            password: password,
+          });
+          
+          if (!supabaseError && supabaseData) {
+            console.log("Supabase authentication successful");
+            return {
+              session: supabaseData.session,
+              user: supabaseData.user
+            };
+          } else {
+            console.log("Supabase auth failed, error:", supabaseError?.message);
+          }
+        } catch (supabaseError) {
+          console.error("Supabase authentication error:", supabaseError);
+          // Continue to local API if Supabase fails
+        }
       }
       
-      // If Supabase auth fails, fall back to local API
+      // If Supabase auth fails or is not available, fall back to local API
       console.log("Falling back to local API authentication");
       const response = await fetch(`${this.apiUrl}/auth/login`, {
         method: "POST",

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
-import { Shield } from 'lucide-react';
+import { Shield, Loader2 } from 'lucide-react';
 import { apiService } from '@/services/api';
 
 interface LoginFormProps {
@@ -17,17 +17,21 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage('');
 
     try {
+      console.log('Attempting login for user:', username);
       // Call the API to authenticate the user
       const response = await apiService.login(username, password);
       
       if (response && response.session) {
+        console.log('Login successful, storing token and user data');
         // Store auth token
         localStorage.setItem('authToken', response.session.access_token);
         
@@ -48,9 +52,10 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       }
     } catch (error) {
       console.error("Login error:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Invalid username or password");
       toast({
         title: "Authentication failed",
-        description: "Invalid username or password",
+        description: error instanceof Error ? error.message : "Invalid username or password",
         variant: "destructive",
       });
     } finally {
@@ -82,6 +87,7 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="admin"
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="grid gap-2">
@@ -93,10 +99,21 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
+                  disabled={isLoading}
                 />
               </div>
+              {errorMessage && (
+                <div className="text-sm text-destructive">{errorMessage}</div>
+              )}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Sign In'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
               </Button>
             </div>
           </form>
