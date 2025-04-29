@@ -1,4 +1,6 @@
+
 import { readJsonFile } from "./readJsonFile";
+import { writeJsonFile } from "./writeJsonFile";
 import { delay } from "./delay";
 import { ExtractProxy } from "./extractProxy";
 
@@ -11,6 +13,7 @@ import {
 
 export {
   readJsonFile,
+  writeJsonFile,
   generateSecurePassword,
   generateVietnameseUsername,
   generateSecChUa,
