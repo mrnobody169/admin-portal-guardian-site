@@ -1,4 +1,5 @@
-
+import dotenv from "dotenv";
+dotenv.config();
 import { DataSource, ObjectLiteral } from 'typeorm';
 import { User } from '../entities/User';
 import { BankAccount } from '../entities/BankAccount';
@@ -12,8 +13,8 @@ export const AppDataSource = new DataSource({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
   username: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'password',
-  database: process.env.DB_NAME || 'mydb',
+  password: process.env.DB_PASSWORD || 'admin',
+  database: process.env.DB_NAME || 'crawl',
   synchronize: false, // Set to false in production
   logging: process.env.NODE_ENV !== 'production',
   entities: [User, BankAccount, Log, Site, AccountLogin],
