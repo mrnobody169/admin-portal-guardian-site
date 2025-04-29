@@ -73,7 +73,7 @@ app.use(cors());
 app.use(express.json());
 
 // Swagger documentation route
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve as any, swaggerUi.setup(swaggerSpec) as any);
 
 // Export Swagger JSON route
 app.get('/api-docs.json', (req, res) => {
