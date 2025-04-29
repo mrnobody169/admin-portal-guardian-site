@@ -1,8 +1,10 @@
 
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export class BaseApiService {
   protected apiUrl = "http://localhost:4000/api";
+  protected supabase = supabase;
 
   // Add auth token if available
   getHeaders() {
@@ -22,5 +24,10 @@ export class BaseApiService {
     }
 
     return response.json();
+  }
+  
+  // Helper method to use Supabase directly when available
+  protected getSupabase() {
+    return this.supabase;
   }
 }

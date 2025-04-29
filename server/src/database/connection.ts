@@ -1,3 +1,4 @@
+
 import dotenv from "dotenv";
 dotenv.config();
 import { DataSource, ObjectLiteral } from 'typeorm';
@@ -6,8 +7,14 @@ import { BankAccount } from '../entities/BankAccount';
 import { Log } from '../entities/Log';
 import { Site } from '../entities/Site';
 import { AccountLogin } from '../entities/AccountLogin';
+import { createClient } from '@supabase/supabase-js';
 
-// Create and export the TypeORM data source
+// Configure Supabase client if credentials are available
+export const supabase = process.env.SUPABASE_URL && process.env.SUPABASE_KEY
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
+  : null;
+
+// Create and export the TypeORM data source - can fall back to local PostgreSQL
 export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
@@ -18,6 +25,13 @@ export const AppDataSource = new DataSource({
   synchronize: false, // Set to false in production
   logging: false,
   entities: [User, BankAccount, Log, Site, AccountLogin],
+  // If using Supabase, we can set SSL to true
+  ssl: process.env.SUPABASE_URL ? true : false,
+  extra: process.env.SUPABASE_URL ? {
+    ssl: {
+      rejectUnauthorized: false
+    }
+  } : {}
 });
 
 // Import migrations
@@ -26,6 +40,10 @@ import { runMigrations } from './migration';
 // Initialize connection
 export const createConnection = async () => {
   try {
+    if (supabase) {
+      console.log('Supabase client initialized');
+    }
+    
     await AppDataSource.initialize();
     
     // Run migrations to ensure database schema
