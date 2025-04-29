@@ -1,6 +1,8 @@
 
 import { AppDataSource } from './connection';
 import { Site } from '../entities/Site';
+import { User } from '../entities/User';
+import * as bcrypt from 'bcrypt';
 
 export const runMigrations = async () => {
   // Make sure the database is initialized
@@ -72,17 +74,16 @@ export const runMigrations = async () => {
       );
     `);
     
-    // Create logs table - FIFTH (depends on users)
+    // Create logs table - FIFTH (modified to remove user_id foreign key)
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         action TEXT NOT NULL,
         entity TEXT NOT NULL,
         entity_id TEXT,
-        user_id UUID,
+        user_id TEXT,
         details JSONB,
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
     `);
     
@@ -100,6 +101,9 @@ export const runMigrations = async () => {
     
     // After migrations are done, create the three specified sites if they don't exist yet
     await createDefaultSites();
+    
+    // Add default admin user
+    await createAdminUser();
     
   } catch (error) {
     await queryRunner.rollbackTransaction();
@@ -148,6 +152,42 @@ async function createDefaultSites() {
     console.log('Default sites setup completed');
   } catch (error) {
     console.error('Error creating default sites:', error);
+    throw error;
+  }
+}
+
+// Function to create admin user
+async function createAdminUser() {
+  try {
+    const userRepository = AppDataSource.getRepository(User);
+    
+    // Check if admin already exists
+    const existingAdmin = await userRepository.findOne({ 
+      where: { username: 'admin' } 
+    });
+    
+    if (!existingAdmin) {
+      // Hash the password
+      const password = 'admin';
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      
+      // Create the admin user
+      const newAdmin = userRepository.create({
+        username: 'admin',
+        password: hashedPassword,
+        email: 'admin@example.com',
+        name: 'Admin User',
+        role: 'admin'
+      });
+      
+      await userRepository.save(newAdmin);
+      console.log('Created default admin user (username: admin, password: admin)');
+    } else {
+      console.log('Admin user already exists');
+    }
+  } catch (error) {
+    console.error('Error creating admin user:', error);
     throw error;
   }
 }

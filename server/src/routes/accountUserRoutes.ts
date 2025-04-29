@@ -15,11 +15,21 @@ const router = Router();
  * @swagger
  * /api/account-users:
  *   get:
- *     summary: This endpoint is not yet implemented
+ *     summary: Get all account users
  *     tags: [AccountUsers]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
- *       501:
- *         description: Not implemented
+ *       200:
+ *         description: List of account users
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
  */
+router.get('/', authenticateToken, (req, res) => {
+  // This route is not yet implemented
+  res.status(501).json({ error: 'Not implemented' });
+});
 
 export default router;

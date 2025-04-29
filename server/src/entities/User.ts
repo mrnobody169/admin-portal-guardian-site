@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Log } from './Log';
+
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -26,9 +26,6 @@ export class User {
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updated_at: Date;
-
-  @OneToMany(() => Log, log => log.user)
-  logs: Log[];
 }
 
 /**
