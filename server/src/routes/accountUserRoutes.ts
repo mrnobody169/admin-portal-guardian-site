@@ -1,8 +1,10 @@
 
 import { Router } from 'express';
 import { authenticateToken } from '../middleware/auth';
+import { UserController } from '../controllers/UserController';
 
 const router = Router();
+const userController = new UserController();
 
 /**
  * @swagger
@@ -27,9 +29,6 @@ const router = Router();
  *       500:
  *         description: Server error
  */
-router.get('/', authenticateToken, (req, res) => {
-  // This route is not yet implemented
-  res.status(501).json({ error: 'Not implemented' });
-});
+router.get('/', authenticateToken, userController.getUsers);
 
 export default router;

@@ -9,6 +9,7 @@ export class AuthService {
   private jwtSecret = process.env.JWT_SECRET || 'default_secret';
 
   async login(username: string, password: string): Promise<{ user: any, token: string }> {
+    // Call the authenticate method from UserService
     const result = await this.userService.authenticate(username, password);
     
     if (!result) {
@@ -19,10 +20,10 @@ export class AuthService {
     await this.logService.create({
       action: 'login',
       entity: 'auth',
-      user_id: result.user.id,
       details: { method: 'username' }
     });
     
+    // Remove password from the returned user object
     const { password: _, ...userWithoutPassword } = result.user;
     
     return {

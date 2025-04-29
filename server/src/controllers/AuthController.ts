@@ -55,6 +55,7 @@ export class AuthController {
     const { username, password } = req.body;
     
     try {
+      console.log(`Login attempt for user: ${username}`);
       const result = await this.authService.login(username, password);
       
       res.json({

@@ -21,7 +21,7 @@ export class UserService {
     return this.userRepository.findOne({ where: { username } });
   }
 
-  async create(userData: Partial<User>, loggedInUserId?: string): Promise<User> {
+  async create(userData: Partial<User>): Promise<User> {
     const existingUser = await this.findByUsername(userData.username!);
     if (existingUser) {
       throw new Error('Username already in use');
@@ -43,14 +43,13 @@ export class UserService {
       action: 'create',
       entity: 'users',
       entity_id: savedUser.id,
-      user_id: loggedInUserId,
       details: { username: userData.username, role: userData.role }
     });
 
     return savedUser;
   }
 
-  async update(id: string, userData: Partial<User>, loggedInUserId?: string): Promise<User> {
+  async update(id: string, userData: Partial<User>): Promise<User> {
     const user = await this.findById(id);
     if (!user) {
       throw new Error('User not found');
@@ -70,14 +69,13 @@ export class UserService {
       action: 'update',
       entity: 'users',
       entity_id: id,
-      user_id: loggedInUserId,
       details: { username: userData.username }
     });
 
     return updatedUser;
   }
 
-  async delete(id: string, loggedInUserId?: string): Promise<void> {
+  async delete(id: string): Promise<void> {
     const user = await this.findById(id);
     if (!user) {
       throw new Error('User not found');
@@ -89,20 +87,22 @@ export class UserService {
     await this.logService.create({
       action: 'delete',
       entity: 'users',
-      entity_id: id,
-      user_id: loggedInUserId,
       details: { deletedUser: user.username }
     });
   }
 
   async authenticate(username: string, password: string): Promise<{ user: User; token: string } | null> {
+    console.log(`Authenticating user: ${username}`);
     const user = await this.findByUsername(username);
     if (!user) {
+      console.log(`User not found: ${username}`);
       return null;
     }
 
+    console.log(`User found, comparing passwords`);
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
+      console.log(`Password mismatch for user: ${username}`);
       return null;
     }
 
@@ -117,11 +117,10 @@ export class UserService {
     await this.logService.create({
       action: 'login',
       entity: 'users',
-      entity_id: user.id,
-      user_id: user.id,
       details: { method: 'password' }
     });
 
+    console.log(`Authentication successful for user: ${username}`);
     return { user, token };
   }
 }
