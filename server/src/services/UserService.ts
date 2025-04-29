@@ -2,6 +2,8 @@
 import { getRepository } from '../database/connection';
 import { User } from '../entities/User';
 import { LogService } from './LogService';
+import * as bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 export class UserService {
   private userRepository = getRepository<User>(User);
@@ -15,17 +17,25 @@ export class UserService {
     return this.userRepository.findOne({ where: { id } });
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email } });
+  async findByUsername(username: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { username } });
   }
 
   async create(userData: Partial<User>, loggedInUserId?: string): Promise<User> {
-    const existingUser = await this.findByEmail(userData.email!);
+    const existingUser = await this.findByUsername(userData.username!);
     if (existingUser) {
-      throw new Error('Email already in use');
+      throw new Error('Username already in use');
     }
 
-    const user = this.userRepository.create(userData);
+    // Hash the password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(userData.password as string, saltRounds);
+    
+    const user = this.userRepository.create({
+      ...userData,
+      password: hashedPassword
+    });
+    
     const savedUser = await this.userRepository.save(user);
 
     // Log the action
@@ -34,7 +44,7 @@ export class UserService {
       entity: 'users',
       entity_id: savedUser.id,
       user_id: loggedInUserId,
-      details: { name: userData.name, email: userData.email }
+      details: { username: userData.username, role: userData.role }
     });
 
     return savedUser;
@@ -46,6 +56,12 @@ export class UserService {
       throw new Error('User not found');
     }
 
+    // If updating password, hash it
+    if (userData.password) {
+      const saltRounds = 10;
+      userData.password = await bcrypt.hash(userData.password, saltRounds);
+    }
+
     Object.assign(user, userData);
     const updatedUser = await this.userRepository.save(user);
 
@@ -55,7 +71,7 @@ export class UserService {
       entity: 'users',
       entity_id: id,
       user_id: loggedInUserId,
-      details: userData
+      details: { username: userData.username }
     });
 
     return updatedUser;
@@ -75,7 +91,37 @@ export class UserService {
       entity: 'users',
       entity_id: id,
       user_id: loggedInUserId,
-      details: { deletedUser: user.email }
+      details: { deletedUser: user.username }
     });
+  }
+
+  async authenticate(username: string, password: string): Promise<{ user: User; token: string } | null> {
+    const user = await this.findByUsername(username);
+    if (!user) {
+      return null;
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return null;
+    }
+
+    const jwtSecret = process.env.JWT_SECRET || 'default_secret';
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role },
+      jwtSecret,
+      { expiresIn: process.env.JWT_EXPIRATION || '24h' }
+    );
+
+    // Log the action
+    await this.logService.create({
+      action: 'login',
+      entity: 'users',
+      entity_id: user.id,
+      user_id: user.id,
+      details: { method: 'password' }
+    });
+
+    return { user, token };
   }
 }

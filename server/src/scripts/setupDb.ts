@@ -5,7 +5,6 @@ import { BankAccount } from '../entities/BankAccount';
 import { Log } from '../entities/Log';
 import { Site } from '../entities/Site';
 import { AccountLogin } from '../entities/AccountLogin';
-import { AccountUser } from '../entities/AccountUser';
 import * as bcrypt from 'bcrypt';
 
 // This script will create a test user and some sample data
@@ -20,19 +19,23 @@ const setupInitialData = async () => {
     const siteRepo = AppDataSource.getRepository(Site);
     const accountRepo = AppDataSource.getRepository(BankAccount);
     const accountLoginRepo = AppDataSource.getRepository(AccountLogin);
-    const accountUserRepo = AppDataSource.getRepository(AccountUser);
     const logRepo = AppDataSource.getRepository(Log);
     
-    // Create a test user
-    console.log('Creating test user...');
-    const testUser = userRepo.create({
-      email: 'test@example.com',
-      name: 'Test User',
+    // Create an admin user
+    console.log('Creating admin user...');
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash('admin123', saltRounds);
+    
+    const adminUser = userRepo.create({
+      username: 'admin',
+      password: hashedPassword,
+      email: 'admin@example.com',
+      name: 'Administrator',
       role: 'admin'
     });
     
-    const savedUser = await userRepo.save(testUser);
-    console.log(`Created user with ID: ${savedUser.id}`);
+    const savedUser = await userRepo.save(adminUser);
+    console.log(`Created admin user with ID: ${savedUser.id}`);
     
     // Create a test site
     console.log('Creating test site...');
@@ -71,26 +74,12 @@ const setupInitialData = async () => {
     const savedAccountLogin = await accountLoginRepo.save(testAccountLogin);
     console.log(`Created account login with ID: ${savedAccountLogin.id}`);
     
-    // Create a test account user (admin)
-    console.log('Creating admin account user...');
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash('admin123', saltRounds);
-    
-    const testAccountUser = accountUserRepo.create({
-      username: 'admin',
-      password: hashedPassword,
-      role: 'admin'
-    });
-    
-    const savedAccountUser = await accountUserRepo.save(testAccountUser);
-    console.log(`Created account user with ID: ${savedAccountUser.id}`);
-    
     // Create a test log entry
     console.log('Creating test log entry...');
     const testLog = logRepo.create({
       action: 'setup',
       entity: 'system',
-      user_id: savedAccountUser.id,
+      user_id: savedUser.id,
       details: { message: 'Initial system setup' }
     });
     

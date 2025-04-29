@@ -17,15 +17,15 @@ export class Site {
   @Column({ type: 'text', default: 'active' })
   status: string;
 
-  @OneToMany(() => BankAccount, bankAccount => bankAccount.site)
-  bankAccounts: BankAccount[];
-
-  @OneToMany(() => AccountLogin, accountLogin => accountLogin.site)
-  accountLogins: AccountLogin[];
-
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updated_at: Date;
+
+  @OneToMany(() => BankAccount, bankAccount => bankAccount.site)
+  bankAccounts: BankAccount[];
+
+  @OneToMany(() => AccountLogin, accountLogin => accountLogin.site)
+  accountLogins: AccountLogin[];
 }

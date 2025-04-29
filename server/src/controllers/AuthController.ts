@@ -6,10 +6,10 @@ export class AuthController {
   private authService = new AuthService();
 
   login = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
     
     try {
-      const result = await this.authService.login(email, password);
+      const result = await this.authService.login(username, password);
       
       res.json({
         session: { access_token: result.token },

@@ -8,7 +8,12 @@ export class UserController {
   getUsers = async (req: Request, res: Response) => {
     try {
       const users = await this.userService.findAll();
-      res.json({ users });
+      // Remove passwords from response
+      const sanitizedUsers = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      res.json({ users: sanitizedUsers });
     } catch (error) {
       console.error('Error fetching users:', error);
       res.status(500).json({ error: 'Failed to fetch users' });
@@ -23,7 +28,8 @@ export class UserController {
         return res.status(404).json({ error: 'User not found' });
       }
       
-      res.json({ user });
+      const { password, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword });
     } catch (error) {
       console.error('Error fetching user:', error);
       res.status(500).json({ error: 'Failed to fetch user' });
@@ -31,19 +37,20 @@ export class UserController {
   }
 
   createUser = async (req: Request, res: Response) => {
-    const { email, name, role } = req.body;
+    const { username, password, email, name, role } = req.body;
     
     try {
       const user = await this.userService.create(
-        { email, name, role: role || 'user' }, 
+        { username, password, email, name, role }, 
         req.user?.id
       );
       
-      res.status(201).json({ user });
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json({ user: userWithoutPassword });
     } catch (error: any) {
       console.error('Error creating user:', error);
       
-      if (error.message === 'Email already in use') {
+      if (error.message === 'Username already in use') {
         return res.status(400).json({ error: error.message });
       }
       
@@ -52,16 +59,17 @@ export class UserController {
   }
 
   updateUser = async (req: Request, res: Response) => {
-    const { email, name, role } = req.body;
+    const { username, password, email, name, role } = req.body;
     
     try {
       const user = await this.userService.update(
         req.params.id,
-        { email, name, role },
+        { username, password, email, name, role },
         req.user?.id
       );
       
-      res.json({ user });
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword });
     } catch (error: any) {
       console.error('Error updating user:', error);
       
@@ -85,6 +93,29 @@ export class UserController {
       }
       
       res.status(500).json({ error: 'Failed to delete user' });
+    }
+  }
+
+  login = async (req: Request, res: Response) => {
+    const { username, password } = req.body;
+    
+    try {
+      const result = await this.userService.authenticate(username, password);
+      
+      if (!result) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+      
+      const { user, token } = result;
+      const { password: _, ...userWithoutPassword } = user;
+      
+      res.json({
+        session: { access_token: token },
+        user: userWithoutPassword
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: 'Authentication failed' });
     }
   }
 }

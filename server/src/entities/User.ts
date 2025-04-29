@@ -1,6 +1,5 @@
 
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { BankAccount } from './BankAccount';
 import { Log } from './Log';
 
 @Entity('users')
@@ -9,12 +8,18 @@ export class User {
   id: string;
 
   @Column({ type: 'text', unique: true })
-  email: string;
+  username: string;
 
   @Column({ type: 'text' })
+  password: string;
+
+  @Column({ type: 'text', nullable: true })
+  email: string;
+
+  @Column({ type: 'text', nullable: true })
   name: string;
 
-  @Column({ type: 'text', default: 'user' })
+  @Column({ type: 'text', default: 'admin' })
   role: string;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
@@ -22,9 +27,6 @@ export class User {
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updated_at: Date;
-
-  @OneToMany(() => BankAccount, bankAccount => bankAccount.user)
-  bankAccounts: BankAccount[];
 
   @OneToMany(() => Log, log => log.user)
   logs: Log[];

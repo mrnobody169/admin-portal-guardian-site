@@ -5,7 +5,6 @@ import { BankAccount } from '../entities/BankAccount';
 import { Log } from '../entities/Log';
 import { Site } from '../entities/Site';
 import { AccountLogin } from '../entities/AccountLogin';
-import { AccountUser } from '../entities/AccountUser';
 
 // Create and export the TypeORM data source
 export const AppDataSource = new DataSource({
@@ -17,7 +16,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || 'mydb',
   synchronize: false, // Set to false in production
   logging: process.env.NODE_ENV !== 'production',
-  entities: [User, BankAccount, Log, Site, AccountLogin, AccountUser],
+  entities: [User, BankAccount, Log, Site, AccountLogin],
 });
 
 // Import migrations
