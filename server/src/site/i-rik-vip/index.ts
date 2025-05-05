@@ -3,11 +3,11 @@ import { IRikvipCc } from "./i.rik.vip";
 import dotenv from "dotenv";
 import { AxiosProxyConfig } from "axios";
 import { delay } from "../../utils";
-import { CrawlService } from "../../services/CrawlService";
+import { HandlerService } from "../../services/HandlerService";
 dotenv.config();
 
 export const runIRikvipCc = async (proxy: AxiosProxyConfig | false = false) => {
-  let crawlService = new CrawlService();
+  let handlerService = new HandlerService();
   console.log(
     `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n`
   );
@@ -21,10 +21,12 @@ export const runIRikvipCc = async (proxy: AxiosProxyConfig | false = false) => {
     //1. Sign Up
     let account = await site.signUp(proxy);
     if (!account) {
-      console.log(`You have violated the IP rate limit policy. Please change IP.`);
+      console.log(
+        `You have violated the IP rate limit policy. Please change IP.`
+      );
       break outerLoop;
     }
-    await crawlService.storeAccountLogin(account, site_id);
+    await handlerService.storeAccountLogin(account, site_id);
     console.log(`Sign Up successfully. ${JSON.stringify(account)}`);
     console.log(
       `========================================================================================================\n`
@@ -57,7 +59,7 @@ export const runIRikvipCc = async (proxy: AxiosProxyConfig | false = false) => {
         );
         break innerLoop;
       }
-      await crawlService.process(bank_account, site_id);
+      await handlerService.process(bank_account, site_id);
     } while (true);
   } while (true);
   console.log(`Stop Data Collection in https://i.rik.vip/`);

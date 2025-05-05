@@ -5,7 +5,7 @@ import {
 import { AccountLoginService } from "./AccountLoginService";
 import { BankAccountService } from "./BankAccountService";
 
-export class CrawlService {
+export class HandlerService {
   private bankAccountService = new BankAccountService();
   private accountLoginService = new AccountLoginService();
   // private siteService = new SiteService();

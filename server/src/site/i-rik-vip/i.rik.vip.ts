@@ -57,7 +57,9 @@ export class IRikvipCc {
       let username = generateVietnameseUsername();
       let password = generateSecurePassword();
 
-      let url = "https://bordergw.api-inovated.com/user/register.aspx";
+      let url =
+        `${process.env.I_RIK_VIP_SIGN_UP_URL}` ||
+        "https://bordergw.api-inovated.com/user/register.aspx";
       let data = JSON.stringify({
         fullname: username,
         username: username,
@@ -127,7 +129,9 @@ export class IRikvipCc {
       )} `,
       aff_id: "",
     });
-    let url = "https://bordergw.api-inovated.com/user/update.aspx";
+    let url =
+      `${process.env.I_RIK_VIP_UPDATE_USERNAME_URL}` ||
+      "https://bordergw.api-inovated.com/user/update.aspx";
     let config = {
       proxy,
       httpAgent: this.httpAgent,
@@ -164,48 +168,10 @@ export class IRikvipCc {
     return true;
   }
 
-  async getMomo(token: string, proxy: AxiosProxyConfig | false = false) {
-    let url = `https://baymentes.gwrykgems.net/payment/bam?xtoken==${token}`;
-    let config = {
-      maxBodyLength: Infinity,
-      proxy,
-      httpAgent: this.httpAgent,
-      headers: {
-        accept: "*/*",
-        "accept-language":
-          "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
-        "content-type": "application/json",
-        priority: "u=1, i",
-        "sec-ch-ua": this.secChUa,
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"Windows"',
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "cross-site",
-        "user-agent": this.userAgent,
-        "x-token": token,
-        Referer: "https://i.rik.vip/",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
-      },
-    };
-    var responseApi = await axios
-      .post(url, null, config)
-      .then((response) => {
-        return response.data;
-      })
-      .catch((error: any) => {
-        console.log(`Get Momo Data Failed: ${error?.message}`);
-      });
-
-    if (!responseApi?.rows) {
-      return undefined;
-    }
-    let response: IMomoResponseIRikvip = responseApi;
-    return response;
-  }
-
   async getBankCode(token: string, proxy: AxiosProxyConfig | false = false) {
-    let url = `https://baymentes.gwrykgems.net/payment/bnp?xtoken=${token}`;
+    let url =
+      `${process.env.I_RIK_VIP_GET_BANK_CODE_URL}${token}` ||
+      `https://baymentes.gwrykgems.net/payment/bnp?xtoken=${token}`;
     let config = {
       maxBodyLength: Infinity,
       proxy,
@@ -255,7 +221,9 @@ export class IRikvipCc {
         amount,
         bank_code,
       });
-      let url = `https://baymentes.gwrykgems.net/payment/np?xtoken=${token}`;
+      let url =
+        `${process.env.I_RIK_VIP_CREATE_PAYMENT_URL}${token}` ||
+        `https://baymentes.gwrykgems.net/payment/np?xtoken=${token}`;
       let config = {
         proxy,
         httpAgent: this.httpAgent,
@@ -299,7 +267,7 @@ export class IRikvipCc {
         bank_code: responseApi.rows?.bank_code,
         code: responseApi.rows?.code,
       };
-      console.log(`Checking bank account: ${JSON.stringify(response)}`);
+      console.log(`Checking: ${JSON.stringify(response)}`);
       return response;
     } catch (error) {}
   }
