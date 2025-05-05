@@ -83,17 +83,19 @@ export const runMigrations = async () => {
           entity TEXT NOT NULL,
           entity_id TEXT,
           details JSONB,
+          user_id UUID,
           created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
         );
       `);
 
-      // Create schedules table - SIXTH
+      // Create schedules table - SIXTH (updated with description field)
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS schedules (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           site_id TEXT,
           schedule_type TEXT NOT NULL,
           cron_expression TEXT NOT NULL,
+          description TEXT,
           next_run_time TIMESTAMP WITH TIME ZONE,
           last_run_time TIMESTAMP WITH TIME ZONE,
           status TEXT NOT NULL DEFAULT 'active',
@@ -174,4 +176,5 @@ async function createDefaultSites() {
   }
 }
 
+// Add line to make the function run automatically when this file is imported
 runMigrations();

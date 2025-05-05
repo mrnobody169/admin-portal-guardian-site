@@ -1,25 +1,25 @@
 
 import { AppDataSource, Repository } from "../database/connection";
 import { Schedule } from "../entities/Schedule";
-import { Site } from "../entities/Site";
 import { LogService } from "./LogService";
 import { SiteService } from "./SiteService";
-import cron from "node-cron";
-import { spawn } from "child_process";
-import path from "path";
-import fs from "fs";
+import { CronManager } from "./CronManager";
+import { TaskRunner } from "./TaskRunner";
+import { CronUtils } from "./CronUtils";
 
 export class ScheduleService {
   private scheduleRepository: Repository<Schedule>;
   private logService: LogService;
   private siteService: SiteService;
-  private activeCronJobs: Map<string, cron.ScheduledTask>;
+  private cronManager: CronManager;
+  private taskRunner: TaskRunner;
 
   constructor() {
     this.scheduleRepository = new Repository<Schedule>("schedules");
     this.logService = new LogService();
     this.siteService = new SiteService();
-    this.activeCronJobs = new Map();
+    this.cronManager = new CronManager();
+    this.taskRunner = new TaskRunner();
   }
 
   async findAll(): Promise<Schedule[]> {
@@ -64,10 +64,18 @@ export class ScheduleService {
     }
 
     // Calculate next run time based on cron expression
-    const nextRunTime = this.calculateNextRunTime(
+    const nextRunTime = CronUtils.calculateNextRunTime(
       scheduleData.cron_expression!
     );
     scheduleData.next_run_time = nextRunTime;
+    
+    // Generate description if not provided
+    if (!scheduleData.description) {
+      scheduleData.description = CronUtils.generateDescription(
+        scheduleData.schedule_type!,
+        scheduleData.cron_expression!
+      );
+    }
 
     const schedule = await this.scheduleRepository.create(scheduleData);
 
@@ -103,9 +111,18 @@ export class ScheduleService {
 
     // If cron expression is updated, recalculate next run time
     if (scheduleData.cron_expression) {
-      scheduleData.next_run_time = this.calculateNextRunTime(
+      scheduleData.next_run_time = CronUtils.calculateNextRunTime(
         scheduleData.cron_expression
       );
+      
+      // Update description if schedule_type or cron_expression changed
+      if (scheduleData.schedule_type || scheduleData.cron_expression) {
+        const scheduleType = scheduleData.schedule_type || schedule.schedule_type;
+        scheduleData.description = CronUtils.generateDescription(
+          scheduleType,
+          scheduleData.cron_expression
+        );
+      }
     }
 
     const updatedSchedule = await this.scheduleRepository.update(
@@ -116,7 +133,7 @@ export class ScheduleService {
     // Update or restart the cron job if necessary
     if (scheduleData.cron_expression || scheduleData.status) {
       // Stop the existing job
-      this.stopCronJob(id);
+      this.cronManager.stopCronJob(id);
 
       // Start a new one if the schedule is active
       if (updatedSchedule.status === "active") {
@@ -148,7 +165,7 @@ export class ScheduleService {
     }
 
     // Stop the cron job before deleting
-    this.stopCronJob(id);
+    this.cronManager.stopCronJob(id);
 
     await this.scheduleRepository.delete(id);
 
@@ -162,104 +179,34 @@ export class ScheduleService {
     });
   }
 
-  private calculateNextRunTime(cronExpression: string): Date | null {
-    try {
-      // Special case for one-time schedules - this is a simplified approach
-      if (cronExpression.includes("once")) {
-        const parts = cronExpression.split(" ");
-        const date = new Date();
-        date.setMinutes(parseInt(parts[0]));
-        date.setHours(parseInt(parts[1]));
-        date.setDate(parseInt(parts[2]));
-        date.setMonth(parseInt(parts[3]) - 1); // Month is 0-indexed in JS
-        return date;
-      }
-
-      // For regular cron expressions
-      if (cron.validate(cronExpression)) {
-        // Get the next execution date
-        const task = cron.schedule(cronExpression, () => {});
-
-        // Use a different approach to get the next date since nextDate() is not available
-        const date = new Date();
-        // Add a small offset to ensure we get the next occurrence
-        date.setSeconds(date.getSeconds() + 1);
-
-        // We'll stop the task since we just needed it to calculate the next run
-        task.stop();
-
-        return date;
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Error calculating next run time:", error);
-      return null;
-    }
-  }
-
   private async startCronJob(schedule: Schedule): Promise<void> {
-    // Don't start if not active
-    if (schedule.status !== "active") return;
-
-    try {
-      // Stop any existing job for this schedule
-      this.stopCronJob(schedule.id);
-
-      // Create a new cron job
-      const job = cron.schedule(schedule.cron_expression, async () => {
-        // Run the task
-        try {
-          if (schedule.site_id) {
-            await this.runSite(schedule.site_id);
-          } else {
-            await this.runAllSites();
-          }
-
-          // Update the last run time and calculate next run time
-          const now = new Date();
-          const nextRunTime = this.calculateNextRunTime(
-            schedule.cron_expression
-          );
-
-          await this.scheduleRepository.update(schedule.id, {
-            last_run_time: now,
-            next_run_time: nextRunTime,
-          });
-        } catch (error: any) {
-          console.error(
-            `Error executing scheduled task ${schedule.id}:`,
-            error
-          );
-          // Log the error but don't stop the schedule
-          await this.logService.create({
-            action: "error",
-            entity: "schedules",
-            entity_id: schedule.id,
-            details: { error: error?.message || "Unknown error" },
-          });
+    // Create task callback for this specific schedule
+    const taskCallback = async () => {
+      try {
+        // Run the appropriate task based on the schedule
+        if (schedule.site_id) {
+          await this.taskRunner.runSite(schedule.site_id);
+        } else {
+          await this.taskRunner.runAllSites();
         }
-      });
 
-      // Store the job in the map
-      this.activeCronJobs.set(schedule.id, job);
+        // Update the last run time and calculate next run time
+        const now = new Date();
+        const nextRunTime = CronUtils.calculateNextRunTime(
+          schedule.cron_expression
+        );
 
-      // Log that the job has been scheduled
-      console.log(
-        `Scheduled job ${schedule.id} with cron expression ${schedule.cron_expression}`
-      );
-    } catch (error) {
-      console.error(`Error scheduling job ${schedule.id}:`, error);
-    }
-  }
+        await this.scheduleRepository.update(schedule.id, {
+          last_run_time: now,
+          next_run_time: nextRunTime,
+        });
+      } catch (error) {
+        console.error(`Error in task callback for schedule ${schedule.id}:`, error);
+      }
+    };
 
-  private stopCronJob(scheduleId: string): void {
-    const job = this.activeCronJobs.get(scheduleId);
-    if (job) {
-      job.stop();
-      this.activeCronJobs.delete(scheduleId);
-      console.log(`Stopped job ${scheduleId}`);
-    }
+    // Start the cron job with the task callback
+    this.cronManager.startCronJob(schedule, taskCallback);
   }
 
   async initializeSchedules(): Promise<void> {
@@ -281,73 +228,10 @@ export class ScheduleService {
   }
 
   async runSite(siteId: string): Promise<void> {
-    const site = await this.siteService.findBySiteId(siteId);
-    if (!site) {
-      throw new Error(`Site with ID ${siteId} not found`);
-    }
-
-    // Find the corresponding site script
-    const scriptsBasePath = path.join(__dirname, "..", "site");
-    let scriptPath = "";
-
-    // Find the script based on site_id pattern
-    if (siteId === process.env.I_RIK_VIP_ID) {
-      scriptPath = path.join(scriptsBasePath, "i-rik-vip", "index.ts");
-    } else if (siteId === process.env.PLAY_IWIN_BIO_ID) {
-      scriptPath = path.join(scriptsBasePath, "play-iwin-bio", "index.ts");
-    } else if (siteId === process.env.PLAY_B52_CC_ID) {
-      scriptPath = path.join(scriptsBasePath, "play-b52-cc", "index.ts");
-    }
-
-    if (!fs.existsSync(scriptPath)) {
-      throw new Error(`Script not found for site ${site.site_name}`);
-    }
-
-    console.log(`Running script for site ${site.site_name} at ${scriptPath}`);
-
-    // Execute the script with ts-node
-    const child = spawn("npx", ["ts-node", scriptPath], {
-      cwd: path.join(__dirname, "..", ".."),
-      stdio: "pipe",
-      env: process.env,
-    });
-
-    // Log output
-    child.stdout.on("data", (data) => {
-      console.log(`[${site.site_name}] ${data}`);
-    });
-
-    child.stderr.on("data", (data) => {
-      console.error(`[${site.site_name}] ERROR: ${data}`);
-    });
-
-    // Handle process exit
-    child.on("close", (code) => {
-      console.log(
-        `Child process for ${site.site_name} exited with code ${code}`
-      );
-    });
-
-    // Log the action
-    await this.logService.create({
-      action: "run",
-      entity: "sites",
-      entity_id: siteId,
-      details: { site_name: site.site_name },
-    });
+    return this.taskRunner.runSite(siteId);
   }
 
   async runAllSites(): Promise<void> {
-    // Get all sites
-    const sites = await this.siteService.findAll();
-
-    // Run each site
-    for (const site of sites) {
-      try {
-        await this.runSite(site.site_id);
-      } catch (error) {
-        console.error(`Error running site ${site.site_name}:`, error);
-      }
-    }
+    return this.taskRunner.runAllSites();
   }
 }

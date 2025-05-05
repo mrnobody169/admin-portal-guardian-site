@@ -55,16 +55,16 @@ CREATE TABLE IF NOT EXISTS logs (
   entity_id TEXT,
   user_id UUID,
   details JSONB,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Create schedules table
+-- Create schedules table (with description field)
 CREATE TABLE IF NOT EXISTS schedules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   site_id TEXT,
   schedule_type TEXT NOT NULL,
   cron_expression TEXT NOT NULL,
+  description TEXT,
   next_run_time TIMESTAMP WITH TIME ZONE,
   last_run_time TIMESTAMP WITH TIME ZONE,
   status TEXT NOT NULL DEFAULT 'active',

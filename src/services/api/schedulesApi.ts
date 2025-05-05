@@ -40,42 +40,10 @@ class SchedulesApiService extends BaseApiService {
 
   async createSchedule(scheduleData: any) {
     try {
-      // Generate human-readable description based on schedule type
-      let description = '';
-      switch (scheduleData.schedule_type) {
-        case 'once':
-          description = 'Run once at specified time';
-          break;
-        case 'interval':
-          const match = scheduleData.cron_expression.match(/\*\/(\d+)/);
-          const minutes = match ? match[1] : 'X';
-          description = `Run every ${minutes} minutes`;
-          break;
-        case 'daily':
-          description = 'Run daily at specified time';
-          break;
-        case 'weekly':
-          description = 'Run weekly at specified time';
-          break;
-        case 'monthly':
-          description = 'Run monthly at specified time';
-          break;
-        case 'custom':
-          description = 'Custom schedule';
-          break;
-        default:
-          description = 'Scheduled task';
-      }
-      
-      const enhancedData = {
-        ...scheduleData,
-        description
-      };
-      
       const response = await fetch(`${this.apiUrl}/schedules`, {
         method: "POST",
         headers: this.getHeaders(),
-        body: JSON.stringify(enhancedData),
+        body: JSON.stringify(scheduleData),
       });
       return this.handleResponse(response);
     } catch (error) {
