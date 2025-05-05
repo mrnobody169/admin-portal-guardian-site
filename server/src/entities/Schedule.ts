@@ -51,7 +51,7 @@ export class Schedule {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid', nullable: true })
+  @Column({ type: 'text', nullable: true })
   site_id: string | null;
 
   @Column({ type: 'text' })

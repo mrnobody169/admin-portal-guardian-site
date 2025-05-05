@@ -344,7 +344,7 @@ export class ScheduleService {
     // Run each site
     for (const site of sites) {
       try {
-        await this.runSite(site.id);
+        await this.runSite(site.site_id);
       } catch (error) {
         console.error(`Error running site ${site.site_name}:`, error);
       }
