@@ -2,7 +2,6 @@
 import { AppDataSource, Repository } from "../database/connection";
 import { BankAccount } from "../entities/BankAccount";
 import { LogService } from "./LogService";
-import { webSocketService } from "./WebSocketService";
 
 export class BankAccountService {
   private bankAccountRepository: Repository<BankAccount>;
@@ -55,9 +54,6 @@ export class BankAccountService {
       details: accountData,
     });
 
-    // Notify clients through WebSocket
-    webSocketService.broadcastEvent('bank_account_created', { account: savedAccount });
-
     return savedAccount;
   }
 
@@ -82,9 +78,6 @@ export class BankAccountService {
       details: accountData,
     });
 
-    // Notify clients through WebSocket
-    webSocketService.broadcastEvent('bank_account_updated', { account: updatedAccount });
-
     return updatedAccount;
   }
 
@@ -104,8 +97,5 @@ export class BankAccountService {
       user_id: loggedInUserId,
       details: { deletedAccount: account.account_no },
     });
-
-    // Notify clients through WebSocket
-    webSocketService.broadcastEvent('bank_account_deleted', { id });
   }
 }

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +24,6 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { Banknote, Edit, Trash2, Plus, Loader2 } from 'lucide-react';
 import { apiService } from '@/services/api';
-import { websocketService } from '@/services/websocket/websocketService';
 import {
   Table,
   TableBody,
@@ -61,6 +61,24 @@ const BankAccounts = () => {
   const [currentAccount, setCurrentAccount] = useState<Partial<BankAccount> | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Function to fetch accounts that we'll call after operations
+  const fetchAccounts = async () => {
+    try {
+      setIsLoading(true);
+      const accountsRes = await apiService.getBankAccounts();
+      setAccounts(accountsRes.accounts || []);
+    } catch (error) {
+      console.error('Failed to fetch accounts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load bank accounts",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -85,39 +103,6 @@ const BankAccounts = () => {
     };
 
     fetchData();
-    
-    // Connect to WebSocket
-    websocketService.connect();
-    
-    // Subscribe to bank account events
-    const createUnsubscribe = websocketService.subscribe('bank_account_created', (data) => {
-      setAccounts(prev => [...prev, data.account]);
-      toast({ title: "New bank account added", description: `${data.account.account_holder}'s account was added` });
-    });
-    
-    const updateUnsubscribe = websocketService.subscribe('bank_account_updated', (data) => {
-      setAccounts(prev => prev.map(acc => acc.id === data.account.id ? data.account : acc));
-      toast({ title: "Bank account updated", description: `${data.account.account_holder}'s account was updated` });
-    });
-    
-    const deleteUnsubscribe = websocketService.subscribe('bank_account_deleted', (data) => {
-      setAccounts(prev => prev.filter(acc => acc.id !== data.id));
-      toast({ title: "Bank account removed", description: "A bank account was removed" });
-    });
-    
-    // Connection established event
-    const connectionUnsubscribe = websocketService.subscribe('connection_established', (data) => {
-      console.log('WebSocket connection established:', data);
-    });
-    
-    // Cleanup function
-    return () => {
-      createUnsubscribe();
-      updateUnsubscribe();
-      deleteUnsubscribe();
-      connectionUnsubscribe();
-      websocketService.disconnect();
-    };
   }, []);
 
   const handleAddAccount = () => {
@@ -158,8 +143,8 @@ const BankAccounts = () => {
 
     try {
       if (currentAccount.id) {
-        // Update existing account using ApiService
-        const { account } = await apiService.updateBankAccount(currentAccount.id, {
+        // Update existing account
+        await apiService.updateBankAccount(currentAccount.id, {
           account_no: currentAccount.account_no,
           account_holder: currentAccount.account_holder,
           bank_name: currentAccount.bank_name,
@@ -167,21 +152,21 @@ const BankAccounts = () => {
           status: currentAccount.status
         });
         
-        // The WebSocket will handle the UI update
         toast({ title: "Bank account updated successfully" });
       } else {
         // Add new account
-        const { account } = await apiService.createBankAccount({
+        await apiService.createBankAccount({
           account_no: currentAccount.account_no,
           account_holder: currentAccount.account_holder,
           bank_name: currentAccount.bank_name,
           site_id: currentAccount.site_id,
         });
         
-        // The WebSocket will handle the UI update
         toast({ title: "Bank account added successfully" });
       }
+      
       setIsDialogOpen(false);
+      fetchAccounts(); // Refresh the accounts list
     } catch (error) {
       console.error('Error saving bank account:', error);
       toast({ 
@@ -196,12 +181,10 @@ const BankAccounts = () => {
     if (!currentAccount?.id) return;
     
     try {
-      // Delete account using ApiService
       await apiService.deleteBankAccount(currentAccount.id);
-      
-      // The WebSocket will handle the UI update
       setIsDeleteDialogOpen(false);
       toast({ title: "Bank account deleted successfully" });
+      fetchAccounts(); // Refresh the accounts list
     } catch (error) {
       console.error('Error deleting bank account:', error);
       toast({ 

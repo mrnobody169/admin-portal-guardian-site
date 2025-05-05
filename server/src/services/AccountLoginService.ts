@@ -2,7 +2,6 @@
 import { AppDataSource, Repository } from "../database/connection";
 import { AccountLogin } from "../entities/AccountLogin";
 import { LogService } from "./LogService";
-import { webSocketService } from "./WebSocketService";
 
 export class AccountLoginService {
   private accountLoginRepository: Repository<AccountLogin>;
@@ -46,9 +45,6 @@ export class AccountLoginService {
       details: { ...accountLoginData, password: "***REDACTED***" }, // Don't log the actual password
     });
 
-    // Notify clients through WebSocket
-    webSocketService.broadcastEvent('account_login_created', { accountLogin: savedAccountLogin });
-
     return savedAccountLogin;
   }
 
@@ -76,9 +72,6 @@ export class AccountLoginService {
       },
     });
 
-    // Notify clients through WebSocket
-    webSocketService.broadcastEvent('account_login_updated', { accountLogin: updatedAccountLogin });
-
     return updatedAccountLogin;
   }
 
@@ -98,8 +91,5 @@ export class AccountLoginService {
       user_id: loggedInUserId,
       details: { deletedAccountLogin: accountLogin.username },
     });
-
-    // Notify clients through WebSocket
-    webSocketService.broadcastEvent('account_login_deleted', { id });
   }
 }

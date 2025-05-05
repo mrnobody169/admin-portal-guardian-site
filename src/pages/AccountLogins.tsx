@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +24,6 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { User, Edit, Trash2, Plus, Loader2, Eye, EyeOff } from 'lucide-react';
 import { apiService } from '@/services/api';
-import { websocketService } from '@/services/websocket/websocketService';
 import {
   Table,
   TableBody,
@@ -32,7 +32,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Select } from '@/components/ui/select';
 import { format } from "date-fns";
 
 interface AccountLogin {
@@ -63,6 +62,24 @@ const AccountLogins = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Function to fetch account logins
+  const fetchAccountLogins = async () => {
+    try {
+      setIsLoading(true);
+      const accountLoginsRes = await apiService.getAccountLogins();
+      setAccountLogins(accountLoginsRes.accountLogins || []);
+    } catch (error) {
+      console.error('Failed to fetch account logins:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load account logins",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -87,55 +104,6 @@ const AccountLogins = () => {
     };
 
     fetchData();
-    
-    // Connect to WebSocket
-    websocketService.connect();
-    
-    // Subscribe to account login events
-    const createUnsubscribe = websocketService.subscribe('account_login_created', (data) => {
-      const loginWithMaskedPassword = { 
-        ...data.accountLogin, 
-        password: '********'
-      };
-      setAccountLogins(prev => [...prev, loginWithMaskedPassword]);
-      toast({ 
-        title: "New account login added", 
-        description: `${loginWithMaskedPassword.username} was added` 
-      });
-    });
-    
-    const updateUnsubscribe = websocketService.subscribe('account_login_updated', (data) => {
-      const loginWithMaskedPassword = { 
-        ...data.accountLogin, 
-        password: '********'
-      };
-      setAccountLogins(prev => 
-        prev.map(login => login.id === loginWithMaskedPassword.id ? loginWithMaskedPassword : login)
-      );
-      toast({ 
-        title: "Account login updated", 
-        description: `${loginWithMaskedPassword.username} was updated` 
-      });
-    });
-    
-    const deleteUnsubscribe = websocketService.subscribe('account_login_deleted', (data) => {
-      setAccountLogins(prev => prev.filter(login => login.id !== data.id));
-      toast({ title: "Account login removed", description: "An account login was removed" });
-    });
-    
-    // Connection established event
-    const connectionUnsubscribe = websocketService.subscribe('connection_established', (data) => {
-      console.log('WebSocket connection established:', data);
-    });
-    
-    // Cleanup function
-    return () => {
-      createUnsubscribe();
-      updateUnsubscribe();
-      deleteUnsubscribe();
-      connectionUnsubscribe();
-      websocketService.disconnect();
-    };
   }, []);
 
   const handleAddAccountLogin = () => {
@@ -199,7 +167,6 @@ const AccountLogins = () => {
         }
         
         await apiService.updateAccountLogin(currentAccountLogin.id, updateData);
-        // WebSocket will handle UI update
         toast({ title: "Account login updated successfully" });
       } else {
         // Add new account login
@@ -211,10 +178,11 @@ const AccountLogins = () => {
           status: currentAccountLogin.status
         });
         
-        // WebSocket will handle UI update
         toast({ title: "Account login added successfully" });
       }
+      
       setIsDialogOpen(false);
+      fetchAccountLogins(); // Refresh the account logins
     } catch (error) {
       console.error('Error saving account login:', error);
       toast({ 
@@ -230,9 +198,9 @@ const AccountLogins = () => {
     
     try {
       await apiService.deleteAccountLogin(currentAccountLogin.id);
-      // WebSocket will handle UI update
       setIsDeleteDialogOpen(false);
       toast({ title: "Account login deleted successfully" });
+      fetchAccountLogins(); // Refresh the account logins
     } catch (error) {
       console.error('Error deleting account login:', error);
       toast({ 

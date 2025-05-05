@@ -9,9 +9,7 @@ import { createConnection } from './database/connection';
 import { setupRoutes } from './routes';
 import fs from 'fs';
 import path from 'path';
-import { runMigrations } from './database/migration';
 import http from 'http';
-import { WebSocketService } from './services/WebSocketService';
 
 // Load environment variables
 dotenv.config();
@@ -101,13 +99,6 @@ const startServer = async () => {
 
     // Setup API routes
     setupRoutes(app);
-
-    // Initialize WebSocket service if enabled
-    if (process.env.WS_ENABLED === 'true') {
-      const wsService = new WebSocketService();
-      wsService.initialize(server);
-      console.log('WebSocket server initialized');
-    }
 
     // Start the server
     server.listen(PORT, () => {
