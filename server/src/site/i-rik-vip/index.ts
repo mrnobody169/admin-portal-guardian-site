@@ -67,21 +67,3 @@ export const runIRikvipCc = async (proxy: AxiosProxyConfig | false = false) => {
     `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n`
   );
 };
-runIRikvipCc();
-
-// // Lập lịch cron job
-// const startCronJob = (): void => {
-//   schedule(
-//     "*/20 * * * *",
-//     async () => {
-//       await runIRikvipCc();
-//     },
-//     {
-//       scheduled: true,
-//       timezone: "Asia/Ho_Chi_Minh",
-//     }
-//   );
-//   console.log("Cron job đã được lập lịch, chạy mỗi 20 phút.");
-// };
-
-// // startCronJob();

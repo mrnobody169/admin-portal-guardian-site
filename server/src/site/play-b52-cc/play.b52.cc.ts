@@ -4,20 +4,19 @@ import http from "http";
 import axios, { AxiosProxyConfig } from "axios";
 import * as fs from "fs";
 import {
-  generateUserAgent,
   generateSecChUa,
   generateSecurePassword,
+  generateUserAgent,
   generateVietnameseUsername,
   readJsonFile,
 } from "../../utils";
 import {
-  IBankCodeIRikvip,
+  IBankCodePlayB52,
   IDepositResponse,
-  IMomoResponseIRikvip,
   ISignUpResponse,
 } from "../../interfaces";
 
-export class IRikvipCc {
+export class PlayB52Cc {
   private httpAgent: http.Agent;
   private fg: string;
   private userAgent: string;
@@ -35,11 +34,11 @@ export class IRikvipCc {
   }
   private async getRandomNicepayCode(): Promise<string> {
     const banks = (
-      await readJsonFile<IBankCodeIRikvip>(`${__dirname}/bank_code_rikvip.json`)
+      await readJsonFile<IBankCodePlayB52>(`${__dirname}/bank_code_b52.json`)
     )?.rows;
     const filteredBanks = banks.filter(
       (bank) =>
-        bank.bankcode && !["MB", "NAB", "DAB", "VCB"].includes(bank.bankcode)
+        bank.nicepay_code && !["MB", "NAB", "DAB"].includes(bank.nicepay_code)
     );
 
     if (filteredBanks.length === 0) {
@@ -47,7 +46,7 @@ export class IRikvipCc {
     }
 
     const randomIndex = Math.floor(Math.random() * filteredBanks.length);
-    return filteredBanks[randomIndex].bankcode as string;
+    return filteredBanks[randomIndex].nicepay_code as string;
   }
 
   async signUp(
@@ -58,20 +57,20 @@ export class IRikvipCc {
       let password = generateSecurePassword();
 
       let url =
-        `${process.env.I_RIK_VIP_SIGN_UP_URL}` ||
-        "https://bordergw.api-inovated.com/user/register.aspx";
+        `${process.env.PLAY_B52_CC_SIGN_UP_URL}` ||
+        "https://bfivegwlog.gwtenkges.com/user/register.aspx";
       let data = JSON.stringify({
         fullname: username,
         username: username,
         password: password,
-        app_id: "rik.vip",
-        avatar: "Avatar7",
+        app_id: "b52.club",
+        avatar: "Avatar35",
         os: "Windows",
         device: "Computer",
         browser: "chrome",
         fg: this.fg,
-        aff_id: "RIKVIP",
-        version: "2.221.2",
+        aff_id: "b52",
+        version: "1.72.1",
       });
 
       let config = {
@@ -80,10 +79,11 @@ export class IRikvipCc {
         httpAgent: this.httpAgent,
         headers: {
           accept: "*/*",
-          "accept-language":
-            "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+          "accept-language": "vi,en-US;q=0.9,en;q=0.8,fr-FR;q=0.7,fr;q=0.6",
           "content-type": "text/plain;charset=UTF-8",
+          origin: "https://play.b52.cc",
           priority: "u=1, i",
+          referer: "https://play.b52.cc/",
           "sec-ch-ua": this.secChUa,
           "sec-ch-ua-mobile": "?0",
           "sec-ch-ua-platform": '"Windows"',
@@ -91,8 +91,6 @@ export class IRikvipCc {
           "sec-fetch-mode": "cors",
           "sec-fetch-site": "cross-site",
           "user-agent": this.userAgent,
-          Referer: "https://i.rik.vip/",
-          "Referrer-Policy": "strict-origin-when-cross-origin",
         },
       };
 
@@ -130,20 +128,19 @@ export class IRikvipCc {
       aff_id: "",
     });
     let url =
-      `${process.env.I_RIK_VIP_UPDATE_USERNAME_URL}` ||
-      "https://bordergw.api-inovated.com/user/update.aspx";
+      `${process.env.PLAY_B52_CC_UPDATE_USERNAME_URL}` ||
+      "https://bfivegwlog.gwtenkges.com/user/update.aspx";
     let config = {
       proxy,
       httpAgent: this.httpAgent,
       maxBodyLength: Infinity,
       headers: {
         accept: "*/*",
-        "accept-language":
-          "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+        "accept-language": "vi,en-US;q=0.9,en;q=0.8,fr-FR;q=0.7,fr;q=0.6",
         "content-type": "application/json",
-        origin: "https://i.rik.vip",
+        origin: "https://play.b52.cc",
         priority: "u=1, i",
-        referer: "https://i.rik.vip/",
+        referer: "https://play.b52.cc/",
         "sec-ch-ua": this.secChUa,
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Windows"',
@@ -170,18 +167,19 @@ export class IRikvipCc {
 
   async getBankCode(token: string, proxy: AxiosProxyConfig | false = false) {
     let url =
-      `${process.env.I_RIK_VIP_GET_BANK_CODE_URL}${token}` ||
-      `https://baymentes.gwrykgems.net/payment/bnp?xtoken=${token}`;
+      `${process.env.PLAY_B52_CC_GET_BANK_CODE_URL}${token}` ||
+      `https://bfivegwpeymint.gwtenkges.com/payment/np/status?xtoken=${token}`;
+
     let config = {
       maxBodyLength: Infinity,
       proxy,
       httpAgent: this.httpAgent,
       headers: {
         accept: "*/*",
-        "accept-language":
-          "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
-        "content-type": "application/json",
+        "accept-language": "vi,en-US;q=0.9,en;q=0.8,fr-FR;q=0.7,fr;q=0.6",
+        origin: "https://play.b52.cc",
         priority: "u=1, i",
+        referer: "https://play.b52.cc/",
         "sec-ch-ua": this.secChUa,
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Windows"',
@@ -190,12 +188,10 @@ export class IRikvipCc {
         "sec-fetch-site": "cross-site",
         "user-agent": this.userAgent,
         "x-token": token,
-        Referer: "https://i.rik.vip/",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
       },
     };
     let responseApi = await axios
-      .post(url, config)
+      .get(url, config)
       .then((response) => {
         return response.data;
       })
@@ -204,7 +200,7 @@ export class IRikvipCc {
       });
     if (responseApi) {
       const jsonString = JSON.stringify(responseApi, null, 2);
-      fs.writeFileSync(__dirname + "\\bank_code_rikvip.json", jsonString);
+      fs.writeFileSync(__dirname + "\\bank_code_b52.json", jsonString);
     }
     return responseApi;
   }
@@ -222,20 +218,19 @@ export class IRikvipCc {
         bank_code,
       });
       let url =
-        `${process.env.I_RIK_VIP_CREATE_PAYMENT_URL}${token}` ||
-        `https://baymentes.gwrykgems.net/payment/np?xtoken=${token}`;
+        `${process.env.PLAY_B52_CC_CREATE_PAYMENT_URL}${token}` ||
+        `https://bfivegwpeymint.gwtenkges.com/payment/np?xtoken=${token}`;
       let config = {
         proxy,
         httpAgent: this.httpAgent,
         maxBodyLength: Infinity,
         headers: {
           accept: "*/*",
-          "accept-language":
-            "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+          "accept-language": "vi,en-US;q=0.9,en;q=0.8,fr-FR;q=0.7,fr;q=0.6",
           "content-type": "application/json",
-          origin: "https://i.rik.vip",
+          origin: "https://play.b52.cc",
           priority: "u=1, i",
-          referer: "https://i.rik.vip/",
+          referer: "https://play.b52.cc/",
           "sec-ch-ua": this.secChUa,
           "sec-ch-ua-mobile": "?0",
           "sec-ch-ua-platform": '"Windows"',
@@ -243,7 +238,7 @@ export class IRikvipCc {
           "sec-fetch-mode": "cors",
           "sec-fetch-site": "cross-site",
           "user-agent": this.userAgent,
-          "X-Token": `${token}`,
+          "x-token": `${token}`,
         },
       };
 
@@ -259,16 +254,57 @@ export class IRikvipCc {
       if (!responseApi?.rows) {
         return undefined;
       }
-
       let response: IDepositResponse = {
-        account_no: responseApi.rows.account_no,
-        account_holder: responseApi.rows.account_name,
+        account_no: responseApi.rows.bank_account_no,
+        account_holder: responseApi.rows.bank_account_name,
         bank_name: responseApi.rows.bank_name,
-        bank_code: responseApi.rows.bank_code,
+        bank_code: responseApi.rows?.bank_code,
         code: responseApi.rows.code,
       };
       console.log(`Checking: ${JSON.stringify(response)}`);
+
       return response;
     } catch (error) {}
+  }
+
+  async cancelPayment(
+    code: string,
+    token: string,
+    proxy: AxiosProxyConfig | false = false
+  ) {
+    let data = JSON.stringify({ code });
+    let url =
+      `${process.env.PLAY_B52_CC_CANCEL_PAYMENT_URL}${token}` ||
+      `https://bfivegwpeymint.gwtenkges.com/payment/np/cancel?xtoken=${token}`;
+    let config = {
+      maxBodyLength: Infinity,
+      proxy,
+      httpAgent: this.httpAgent,
+      headers: {
+        accept: "*/*",
+        "accept-language": "vi,en-US;q=0.9,en;q=0.8,fr-FR;q=0.7,fr;q=0.6",
+        "content-type": "application/json",
+        origin: "https://play.b52.cc",
+        priority: "u=1, i",
+        referer: "https://play.b52.cc/",
+        "sec-ch-ua": this.secChUa,
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "cross-site",
+        "user-agent": this.userAgent,
+        "x-token": token,
+      },
+    };
+    var responseApi = await axios
+      .post(url, data, config)
+      .then((response) => {
+        return JSON.stringify(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    return responseApi;
   }
 }

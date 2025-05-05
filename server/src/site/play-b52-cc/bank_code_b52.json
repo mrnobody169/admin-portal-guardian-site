@@ -1,0 +1,219 @@
+{
+  "success": true,
+  "code": 200,
+  "rows": [
+    {
+      "bankcode": "NCB",
+      "name": "NCB",
+      "statement_time": [],
+      "tl": 1,
+      "nicepay_code": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "VPbank",
+      "name": "VPBank",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "",
+      "nicepay_code": "VPB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "MBbank",
+      "name": "MBbank",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "bidv",
+      "nicepay_code": "MB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "Maritimebank",
+      "name": "Maritimebank",
+      "statement_time": [],
+      "tl": 1,
+      "nicepay_code": "MSB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "NamABank",
+      "name": "Nam A Bank",
+      "statement_time": [],
+      "tl": 1,
+      "nicepay_code": "NAB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "Techcombank",
+      "name": "Techcombank",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "sab",
+      "nicepay_code": "TCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "BIDV",
+      "name": "BIDV",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "vcb",
+      "nicepay_code": "BIDV",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "DongA",
+      "name": "Vikki",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "vpbank",
+      "nicepay_code": "DAB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "Eximbank",
+      "name": "Eximbank",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "",
+      "nicepay_code": "EIB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "SHB",
+      "name": "SHB",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "vpbank",
+      "nicepay_code": "SHB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "KLB",
+      "name": "KienlongBank",
+      "statement_time": [],
+      "tl": 1,
+      "nicepay_code": "KLB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "LPB",
+      "name": "LocPhat Bank",
+      "statement_time": [],
+      "tl": 1,
+      "nicepay_code": "LPB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "Vietbank",
+      "name": "Vietbank",
+      "tl": 1,
+      "nicepay_code": "VIETBANK",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "Sacombank",
+      "name": "Sacombank",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "PVcombank",
+      "name": "PVcombank",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "ACB",
+      "name": "ACB",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "VCB",
+      "name": "Vietcombank",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "VietinBank",
+      "name": "VietinBank",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "ABbank",
+      "name": "ABBank",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "VietCapital",
+      "name": "VietCapital",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "SCB",
+      "name": "SCB",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "BacABank",
+      "name": "Bac A Bank",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "VID",
+      "name": "PublicBank",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    }
+  ]
+}

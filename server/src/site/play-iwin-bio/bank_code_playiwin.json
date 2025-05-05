@@ -1,0 +1,84 @@
+{
+  "success": true,
+  "code": 200,
+  "rows": [
+    {
+      "bankcode": "Eximbank",
+      "name": "Eximbank",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "BIDV",
+      "name": "BIDV",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "Techcombank",
+      "name": "Techcombank",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "KLB",
+      "name": "KienLongBank",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "SHB",
+      "name": "SHB",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "Maritimebank",
+      "name": "MSB",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "DongA",
+      "name": "VikkiBank",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "NCB",
+      "name": "NCB",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "OCB",
+      "name": "OCB",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "NamABank",
+      "name": "NamABank",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "Vietbank",
+      "name": "VietBank",
+      "statement_time": null,
+      "tl": 1
+    },
+    {
+      "bankcode": "SEAB",
+      "name": "SeABank",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "VPbank",
+      "name": "VPBank",
+      "statement_time": [],
+      "tl": 1
+    }
+  ]
+}

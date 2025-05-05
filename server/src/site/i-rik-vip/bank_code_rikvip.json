@@ -3,6 +3,12 @@
   "code": 200,
   "rows": [
     {
+      "bankcode": "PGB",
+      "name": "PGBank",
+      "statement_time": null,
+      "tl": 1
+    },
+    {
       "bankcode": "BIDV",
       "name": "BIDV",
       "statement_time": null,
@@ -11,6 +17,12 @@
     {
       "bankcode": "MBbank",
       "name": "MBBank",
+      "statement_time": null,
+      "tl": 1
+    },
+    {
+      "bankcode": "Techcombank",
+      "name": "Techcombank",
       "statement_time": null,
       "tl": 1
     },
@@ -27,14 +39,14 @@
       "tl": 1
     },
     {
-      "bankcode": "Maritimebank",
-      "name": "MSB",
+      "bankcode": "DongA",
+      "name": "VikkiBank",
       "statement_time": null,
       "tl": 1
     },
     {
-      "bankcode": "DongA",
-      "name": "VikkiBank",
+      "bankcode": "Maritimebank",
+      "name": "MSB",
       "statement_time": null,
       "tl": 1
     },
@@ -45,8 +57,26 @@
       "tl": 1
     },
     {
+      "bankcode": "OCB",
+      "name": "OCB",
+      "statement_time": null,
+      "tl": 1
+    },
+    {
       "bankcode": "ACB",
       "name": "ACB",
+      "statement_time": null,
+      "tl": 1
+    },
+    {
+      "bankcode": "VietinBank",
+      "name": "VietinBank",
+      "statement_time": null,
+      "tl": 1
+    },
+    {
+      "bankcode": "PVcombank",
+      "name": "PVcomBank",
       "statement_time": null,
       "tl": 1
     },

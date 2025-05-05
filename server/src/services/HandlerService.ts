@@ -1,14 +1,10 @@
-import {
-  IDepositResponse,
-  ISignUpResponse,
-} from "../interfaces";
+import { IDepositResponse, ISignUpResponse } from "../interfaces";
 import { AccountLoginService } from "./AccountLoginService";
 import { BankAccountService } from "./BankAccountService";
 
 export class HandlerService {
   private bankAccountService = new BankAccountService();
   private accountLoginService = new AccountLoginService();
-  // private siteService = new SiteService();
 
   public async process(
     bank_account: IDepositResponse,
