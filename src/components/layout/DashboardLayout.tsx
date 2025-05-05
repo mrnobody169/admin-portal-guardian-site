@@ -9,7 +9,8 @@ import {
   LogOut,
   Shield,
   Building,
-  User
+  User,
+  Calendar
 } from 'lucide-react';
 import { authService } from '@/services/authService';
 
@@ -78,6 +79,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <SidebarItem to="/sites" icon={Building} label="Sites" />
             <SidebarItem to="/account-logins" icon={User} label="Account Logins" />
             <SidebarItem to="/bank-accounts" icon={Database} label="Bank Accounts" />
+            <SidebarItem to="/schedule-runner" icon={Calendar} label="Schedule Runner" />
             <SidebarItem to="/logs" icon={List} label="System Logs" />
           </nav>
         </div>

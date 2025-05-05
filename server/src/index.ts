@@ -10,6 +10,7 @@ import { setupRoutes } from './routes';
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
+import { ScheduleService } from './services/ScheduleService';
 
 // Load environment variables
 dotenv.config();
@@ -99,6 +100,11 @@ const startServer = async () => {
 
     // Setup API routes
     setupRoutes(app);
+
+    // Initialize schedule service and load existing schedules
+    const scheduleService = new ScheduleService();
+    await scheduleService.initializeSchedules();
+    console.log('Schedules initialized');
 
     // Start the server
     server.listen(PORT, () => {

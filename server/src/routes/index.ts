@@ -7,6 +7,7 @@ import accountLoginRoutes from './accountLoginRoutes';
 import accountUserRoutes from './accountUserRoutes';
 import authRoutes from './authRoutes';
 import userRoutes from './userRoutes';
+import scheduleRoutes from './scheduleRoutes';
 
 export const setupRoutes = (app: Express) => {
   app.use('/api/auth', authRoutes);
@@ -16,4 +17,5 @@ export const setupRoutes = (app: Express) => {
   app.use('/api/account-logins', accountLoginRoutes);
   app.use('/api/account-users', accountUserRoutes);
   app.use('/api/users', userRoutes);
+  app.use('/api/schedules', scheduleRoutes);
 };

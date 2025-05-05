@@ -9,6 +9,7 @@ import BankAccounts from '@/pages/BankAccounts';
 import Sites from '@/pages/Sites';
 import AccountLogins from '@/pages/AccountLogins';
 import Logs from '@/pages/Logs';
+import ScheduleRunner from '@/pages/ScheduleRunner';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import './App.css';
 
@@ -24,6 +25,7 @@ function App() {
           <Route path="/sites" element={<DashboardLayout><Sites /></DashboardLayout>} />
           <Route path="/account-logins" element={<DashboardLayout><AccountLogins /></DashboardLayout>} />
           <Route path="/logs" element={<DashboardLayout><Logs /></DashboardLayout>} />
+          <Route path="/schedule-runner" element={<DashboardLayout><ScheduleRunner /></DashboardLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
