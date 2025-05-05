@@ -22,9 +22,15 @@ export class CronManager {
 
       // Create a new cron job
       const job = cron.schedule(schedule.cron_expression, async () => {
+        // Log start of execution
+        console.log(`Executing scheduled task ${schedule.id} (${schedule.description || 'No description'})`);
+        
         // Run the task
         try {
           await taskCallback();
+          
+          // Log successful execution
+          console.log(`Successfully completed task ${schedule.id}`);
         } catch (error: any) {
           console.error(
             `Error executing scheduled task ${schedule.id}:`,
@@ -71,5 +77,16 @@ export class CronManager {
 
   getActiveJobsCount(): number {
     return this.activeCronJobs.size;
+  }
+  
+  getActiveJobsInfo(): { id: string; expression: string }[] {
+    const jobsInfo: { id: string; expression: string }[] = [];
+    this.activeCronJobs.forEach((job, scheduleId) => {
+      jobsInfo.push({
+        id: scheduleId,
+        expression: job.getExpression()
+      });
+    });
+    return jobsInfo;
   }
 }

@@ -1,5 +1,6 @@
 
 import cron from "node-cron";
+import { parse, parseExpression } from "cron-parser";
 
 export class CronUtils {
   static calculateNextRunTime(cronExpression: string): Date | null {
@@ -17,17 +18,19 @@ export class CronUtils {
 
       // For regular cron expressions
       if (cron.validate(cronExpression)) {
-        // Get the next execution date
-        const task = cron.schedule(cronExpression, () => {});
-
-        // Add a small offset to ensure we get the next occurrence
-        const date = new Date();
-        date.setSeconds(date.getSeconds() + 1);
-
-        // We'll stop the task since we just needed it to calculate the next run
-        task.stop();
-
-        return date;
+        try {
+          // Use cron-parser to calculate next run time
+          const interval = parseExpression(cronExpression);
+          return interval.next().toDate();
+        } catch (parseError) {
+          console.error("Error parsing cron expression:", parseError);
+          
+          // Fallback to simple estimation
+          // Add a small offset to ensure we get the next occurrence
+          const date = new Date();
+          date.setSeconds(date.getSeconds() + 60);
+          return date;
+        }
       }
 
       return null;
@@ -50,13 +53,25 @@ export class CronUtils {
         description = `Run every ${minutes} minutes`;
         break;
       case 'daily':
-        description = 'Run daily at specified time';
+        const timeMatch = cronExpression.match(/(\d+) (\d+) \* \* \*/);
+        if (timeMatch) {
+          const hour = parseInt(timeMatch[2]);
+          const minute = parseInt(timeMatch[1]);
+          const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          description = `Run daily at ${timeStr}`;
+        } else {
+          description = 'Run daily at specified time';
+        }
         break;
       case 'weekly':
-        description = 'Run weekly at specified time';
+        const dayOfWeek = cronExpression.split(' ')[4];
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = days[parseInt(dayOfWeek)] || 'specified day';
+        description = `Run weekly on ${dayName}`;
         break;
       case 'monthly':
-        description = 'Run monthly at specified time';
+        const dayOfMonth = cronExpression.split(' ')[2];
+        description = `Run monthly on day ${dayOfMonth}`;
         break;
       case 'custom':
         description = 'Custom schedule';

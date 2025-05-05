@@ -8,13 +8,21 @@ import { LogService } from "./LogService";
 export class TaskRunner {
   private siteService: SiteService;
   private logService: LogService;
+  private runningTasks: Map<string, { process: any, startTime: Date }>;
 
   constructor() {
     this.siteService = new SiteService();
     this.logService = new LogService();
+    this.runningTasks = new Map();
   }
 
   async runSite(siteId: string): Promise<void> {
+    // Check if task is already running
+    if (this.isTaskRunning(siteId)) {
+      console.log(`Task for site ${siteId} is already running. Skipping.`);
+      return;
+    }
+
     const site = await this.siteService.findBySiteId(siteId);
     if (!site) {
       throw new Error(`Site with ID ${siteId} not found`);
@@ -45,6 +53,12 @@ export class TaskRunner {
       stdio: "pipe",
       env: process.env,
     });
+    
+    // Add to running tasks
+    this.runningTasks.set(siteId, {
+      process: child,
+      startTime: new Date()
+    });
 
     // Log output
     child.stdout.on("data", (data) => {
@@ -60,6 +74,16 @@ export class TaskRunner {
       console.log(
         `Child process for ${site.site_name} exited with code ${code}`
       );
+      // Remove from running tasks
+      this.runningTasks.delete(siteId);
+      
+      // Log completion
+      this.logService.create({
+        action: "complete",
+        entity: "sites",
+        entity_id: siteId,
+        details: { site_name: site.site_name, exit_code: code },
+      }).catch(err => console.error("Error logging task completion:", err));
     });
 
     // Log the action
@@ -83,5 +107,20 @@ export class TaskRunner {
         console.error(`Error running site ${site.site_name}:`, error);
       }
     }
+  }
+  
+  isTaskRunning(siteId: string): boolean {
+    return this.runningTasks.has(siteId);
+  }
+  
+  getRunningTasks(): { siteId: string, startTime: Date }[] {
+    const tasks: { siteId: string, startTime: Date }[] = [];
+    this.runningTasks.forEach((value, key) => {
+      tasks.push({
+        siteId: key,
+        startTime: value.startTime
+      });
+    });
+    return tasks;
   }
 }
