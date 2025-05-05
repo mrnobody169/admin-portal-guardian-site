@@ -1,3 +1,4 @@
+
 import { AppDataSource, Repository } from "../database/connection";
 import { Schedule } from "../entities/Schedule";
 import { Site } from "../entities/Site";
@@ -268,9 +269,8 @@ export class ScheduleService {
     }
 
     // Get all active schedules
-    const schedules = await this.scheduleRepository.find({
-      status: "active",
-    });
+    const activeSchedules = await this.scheduleRepository.findAll();
+    const schedules = activeSchedules.filter(schedule => schedule.status === "active");
 
     // Start each schedule
     for (const schedule of schedules) {

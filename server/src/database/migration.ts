@@ -1,3 +1,4 @@
+
 import { AppDataSource } from './connection';
 import { Site } from '../entities/Site';
 import { User } from '../entities/User';
@@ -86,18 +87,19 @@ export const runMigrations = async () => {
         );
       `);
 
-      // Create schedules table
+      // Create schedules table - SIXTH
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS schedules (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          site_id TEXT REFERENCES sites(site_id) ON DELETE CASCADE,
+          site_id TEXT,
           schedule_type TEXT NOT NULL,
           cron_expression TEXT NOT NULL,
           next_run_time TIMESTAMP WITH TIME ZONE,
           last_run_time TIMESTAMP WITH TIME ZONE,
           status TEXT NOT NULL DEFAULT 'active',
           created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-          updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+          updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
         );
       `);
 
@@ -107,7 +109,6 @@ export const runMigrations = async () => {
         CREATE INDEX IF NOT EXISTS idx_account_logins_site_id ON account_logins(site_id);
         CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);
         CREATE INDEX IF NOT EXISTS idx_logs_entity ON logs(entity);
-        CREATE INDEX IF NOT EXISTS idx_logs_user_id ON logs(user_id);
         CREATE INDEX IF NOT EXISTS idx_schedules_site_id ON schedules(site_id);
         CREATE INDEX IF NOT EXISTS idx_schedules_status ON schedules(status);
       `);
@@ -117,9 +118,6 @@ export const runMigrations = async () => {
 
       // After migrations are done, create the three specified sites if they don't exist yet
       await createDefaultSites();
-
-      // We'll add the default admin user in setupDb.ts instead
-      // await createAdminUser();
 
     } catch (error) {
       await queryRunner.rollbackTransaction();

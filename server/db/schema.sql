@@ -59,9 +59,25 @@ CREATE TABLE IF NOT EXISTS logs (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- Create schedules table
+CREATE TABLE IF NOT EXISTS schedules (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  site_id TEXT,
+  schedule_type TEXT NOT NULL,
+  cron_expression TEXT NOT NULL,
+  next_run_time TIMESTAMP WITH TIME ZONE,
+  last_run_time TIMESTAMP WITH TIME ZONE,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (site_id) REFERENCES sites(site_id) ON DELETE CASCADE
+);
+
 -- Create indexes for faster lookups
 CREATE INDEX IF NOT EXISTS idx_bank_accounts_site_id ON bank_accounts(site_id);
 CREATE INDEX IF NOT EXISTS idx_account_logins_site_id ON account_logins(site_id);
 CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_logs_entity ON logs(entity);
 CREATE INDEX IF NOT EXISTS idx_logs_user_id ON logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_schedules_site_id ON schedules(site_id);
+CREATE INDEX IF NOT EXISTS idx_schedules_status ON schedules(status);
