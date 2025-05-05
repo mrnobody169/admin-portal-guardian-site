@@ -1,6 +1,5 @@
-
-import { apiService } from './api';
-import { toast } from '@/components/ui/use-toast';
+import { apiService } from "./api";
+import { toast } from "@/components/ui/use-toast";
 
 interface User {
   id: string;
@@ -11,52 +10,53 @@ interface User {
 
 class AuthService {
   getCurrentUser(): User | null {
-    const userStr = localStorage.getItem('user');
+    const userStr = localStorage.getItem("user");
     if (!userStr) return null;
-    
+
     try {
       return JSON.parse(userStr);
     } catch (error) {
-      console.error('Error parsing user from localStorage:', error);
+      console.error("Error parsing user from localStorage:", error);
       return null;
     }
   }
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('authToken');
+    return !!localStorage.getItem("authToken");
   }
 
-  logout(navigate: (path: string) => void): void {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    
+  logout(navigate?: (path: string) => void): void {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+
     toast({
       title: "Logged out successfully",
     });
-    
-    navigate('/login');
+    if (navigate) {
+      navigate("/login");
+    }
   }
 
   async login(username: string, password: string) {
     try {
       const response = await apiService.login(username, password);
-      
+
       if (response && response.session) {
-        localStorage.setItem('authToken', response.session.access_token);
-        
+        localStorage.setItem("authToken", response.session.access_token);
+
         if (response.user) {
-          localStorage.setItem('user', JSON.stringify(response.user));
+          localStorage.setItem("user", JSON.stringify(response.user));
         }
-        
+
         return {
           success: true,
-          user: response.user
+          user: response.user,
         };
       }
-      
-      throw new Error('Invalid response from server');
+
+      throw new Error("Invalid response from server");
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       throw error;
     }
   }
@@ -64,13 +64,13 @@ class AuthService {
   hasPermission(requiredRole: string): boolean {
     const user = this.getCurrentUser();
     if (!user) return false;
-    
+
     // Basic role check. This could be expanded for more complex permissions
     switch (requiredRole) {
-      case 'admin':
-        return user.role === 'admin';
-      case 'user':
-        return ['admin', 'user'].includes(user.role);
+      case "admin":
+        return user.role === "admin";
+      case "user":
+        return ["admin", "user"].includes(user.role);
       default:
         return false;
     }

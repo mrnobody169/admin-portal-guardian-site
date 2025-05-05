@@ -5,11 +5,11 @@ export class BaseApiService {
   protected apiUrl: string;
 
   constructor() {
-    this.apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    this.apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
   }
 
   protected getHeaders() {
-    const token = authService.getToken();
+    const token = localStorage.getItem('authToken');
     return {
       'Content-Type': 'application/json',
       Authorization: token ? `Bearer ${token}` : '',
