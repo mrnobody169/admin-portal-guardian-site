@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +7,9 @@ import { TaskCard } from '@/components/schedule/TaskCard';
 import { ScheduleForm } from '@/components/schedule/ScheduleForm';
 import { ScheduleTable } from '@/components/schedule/ScheduleTable';
 import { schedulesApi } from '@/services/api/schedulesApi';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { RefreshCcw } from "lucide-react";
 
 // Define main schema for form data
 const formSchema = z.object({
@@ -38,57 +42,73 @@ interface Schedule {
 const ScheduleRunner = () => {
   const [sites, setSites] = useState<Site[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [dataFetched, setDataFetched] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Load sites and existing schedules
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchData = async () => {
-      if (dataFetched) return;
-      
       setLoading(true);
       setError(null);
       
       try {
+        console.log('Fetching sites data...');
         // Fetch sites first
         const sitesData = await schedulesApi.getSites();
-        setSites(sitesData || []);
+        console.log('Sites data received:', sitesData);
         
+        if (isMounted) {
+          setSites(sitesData || []);
+        }
+        
+        console.log('Fetching schedules data...');
         // Then fetch schedules
         const schedulesData = await schedulesApi.getAllSchedules();
+        console.log('Schedules data received:', schedulesData);
         
-        // Enhance schedule data with site names for better display
-        const enhancedSchedules = (schedulesData || []).map(schedule => {
-          if (!schedule.site_id) {
-            return { ...schedule, site_name: undefined };
-          }
+        if (isMounted) {
+          // Enhance schedule data with site names for better display
+          const enhancedSchedules = (schedulesData || []).map(schedule => {
+            if (!schedule.site_id) {
+              return { ...schedule, site_name: undefined };
+            }
+            
+            const matchingSite = sitesData?.find(site => site.id === schedule.site_id);
+            return { 
+              ...schedule, 
+              site_name: matchingSite?.site_name || 'Unknown Site' 
+            };
+          });
           
-          const matchingSite = sitesData?.find(site => site.id === schedule.site_id);
-          return { 
-            ...schedule, 
-            site_name: matchingSite?.site_name || 'Unknown Site' 
-          };
-        });
-        
-        setSchedules(enhancedSchedules);
-        setDataFetched(true);
+          setSchedules(enhancedSchedules);
+        }
       } catch (error: any) {
         console.error("Error fetching data:", error);
-        setError(error?.message || "Failed to load data");
-        toast({
-          variant: "destructive",
-          title: "Error loading data",
-          description: "Failed to load sites or schedules. Please try again.",
-        });
+        if (isMounted) {
+          setError(error?.message || "Failed to load data");
+          toast({
+            variant: "destructive",
+            title: "Error loading data",
+            description: "Failed to load sites or schedules. Please try again.",
+          });
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
-  }, [toast, dataFetched]);
+    
+    // Cleanup function to prevent state updates after unmounting
+    return () => {
+      isMounted = false;
+    };
+  }, [toast]);
 
   // Handle schedule creation
   const handleCreateSchedule = async (values: z.infer<typeof formSchema>) => {
@@ -148,7 +168,9 @@ const ScheduleRunner = () => {
         status: 'active'
       };
 
+      console.log('Creating schedule with data:', scheduleData);
       const result = await schedulesApi.createSchedule(scheduleData);
+      console.log('Schedule creation result:', result);
       
       if (result) {
         toast({
@@ -158,6 +180,8 @@ const ScheduleRunner = () => {
         
         // Refresh schedules list
         const updatedSchedules = await schedulesApi.getAllSchedules();
+        console.log('Updated schedules:', updatedSchedules);
+        
         if (updatedSchedules) {
           // Enhance schedule data with site names
           const enhancedSchedules = updatedSchedules.map(schedule => {
@@ -188,6 +212,7 @@ const ScheduleRunner = () => {
   const runNow = async (siteId: string | null) => {
     try {
       setLoading(true);
+      console.log(`Running task for site: ${siteId || 'all sites'}`);
       await schedulesApi.runTask(siteId);
       
       toast({
@@ -209,6 +234,7 @@ const ScheduleRunner = () => {
   const deleteSchedule = async (id: string) => {
     try {
       setLoading(true);
+      console.log(`Deleting schedule: ${id}`);
       await schedulesApi.deleteSchedule(id);
       
       toast({
@@ -230,8 +256,15 @@ const ScheduleRunner = () => {
     }
   };
 
+  // Function to retry data loading
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+    // This will trigger the useEffect again
+  };
+
   // Show loading state
-  if (loading && !dataFetched) {
+  if (loading && schedules.length === 0 && sites.length === 0) {
     return (
       <div className="container mx-auto py-8">
         <div className="flex flex-col space-y-6">
@@ -251,22 +284,23 @@ const ScheduleRunner = () => {
     );
   }
 
-  // Show error state
-  if (error && !dataFetched) {
+  // Show error state with retry option
+  if (error) {
     return (
       <div className="container mx-auto py-8">
         <div className="flex flex-col items-center justify-center h-64">
-          <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Data</h2>
-          <p className="text-muted-foreground mb-4">{error}</p>
-          <button 
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-            onClick={() => {
-              setError(null);
-              setDataFetched(false);
-            }}
+          <Alert variant="destructive" className="mb-4">
+            <AlertTitle>Error Loading Data</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <Button 
+            variant="outline" 
+            onClick={handleRetry} 
+            className="flex items-center gap-2"
           >
+            <RefreshCcw className="h-4 w-4" />
             Retry
-          </button>
+          </Button>
         </div>
       </div>
     );

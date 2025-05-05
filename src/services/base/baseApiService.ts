@@ -1,32 +1,61 @@
 
-import { toast } from "@/components/ui/use-toast";
+import { authService } from '../authService';
 
 export class BaseApiService {
-  protected apiUrl = "http://localhost:4000/api";
+  protected apiUrl: string;
 
   constructor() {
-    console.log('API Service initialized');
+    this.apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
   }
 
-  // Add auth token if available
-  getHeaders() {
-    const token = localStorage.getItem('authToken');
-
+  protected getHeaders() {
+    const token = authService.getToken();
     return {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      'Content-Type': 'application/json',
+      Authorization: token ? `Bearer ${token}` : '',
     };
   }
 
-  // Handle API responses consistently
   protected async handleResponse(response: Response) {
+    // First log the status and URL for debugging
+    console.log(`API Response: ${response.status} from ${response.url}`);
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.error || 'API request failed';
-      console.error('API error:', errorMessage);
+      // Try to get error details if available
+      let errorMessage;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || `HTTP error ${response.status}`;
+      } catch (e) {
+        // If parsing failed, use status text
+        errorMessage = `HTTP error ${response.status}: ${response.statusText}`;
+      }
+
+      console.error('API error response:', errorMessage);
+      
+      // Special handling for authentication errors
+      if (response.status === 401) {
+        console.log('Authentication error detected, logging out...');
+        authService.logout();
+        window.location.href = '/login';
+      }
+      
       throw new Error(errorMessage);
     }
 
-    return response.json();
+    // Check if the response is empty
+    const contentType = response.headers.get('content-type');
+    if (response.status === 204 || !contentType || !contentType.includes('application/json')) {
+      return null;
+    }
+
+    // Parse JSON response
+    try {
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error parsing JSON response:', error);
+      throw new Error('Invalid JSON response from server');
+    }
   }
 }

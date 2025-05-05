@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { Loader } from 'lucide-react';
 
 export interface TaskProgressProps {
   siteId: string | null;
@@ -80,8 +80,13 @@ export function TaskProgress({
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between text-sm">
-        <div className="font-medium">
-          {status === 'running' && 'Task in progress...'}
+        <div className="flex items-center gap-2 font-medium">
+          {status === 'running' && (
+            <>
+              <Loader className="h-4 w-4 animate-spin" />
+              Task in progress...
+            </>
+          )}
           {status === 'completed' && 'Task completed'}
           {status === 'error' && 'Task failed'}
         </div>
@@ -95,7 +100,7 @@ export function TaskProgress({
       {status === 'running' ? (
         <Progress value={progress} className="h-2" />
       ) : status === 'completed' ? (
-        <Progress value={100} className="h-2 bg-success/20" />
+        <Progress value={100} className="h-2 bg-green-500/20" />
       ) : (
         <Progress value={100} className="h-2 bg-destructive/20" />
       )}

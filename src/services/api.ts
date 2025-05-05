@@ -6,6 +6,7 @@ import { bankAccountsApi } from "./api/bankAccountsApi";
 import { sitesApi } from "./api/sitesApi";
 import { accountLoginsApi } from "./api/accountLoginsApi";
 import { logsApi } from "./api/logsApi";
+import { schedulesApi } from "./api/schedulesApi";
 
 // Re-export all API services
 export {
@@ -14,7 +15,8 @@ export {
   bankAccountsApi,
   sitesApi,
   accountLoginsApi,
-  logsApi
+  logsApi,
+  schedulesApi
 };
 
 // Create a single instance for backward compatibility
@@ -55,6 +57,11 @@ class ApiService extends BaseApiService {
   // Logs methods
   getLogs = logsApi.getLogs.bind(logsApi);
   createLog = logsApi.createLog.bind(logsApi);
+  
+  // Schedule methods
+  getAllSchedules = schedulesApi.getAllSchedules.bind(schedulesApi);
+  createSchedule = schedulesApi.createSchedule.bind(schedulesApi);
+  runTask = schedulesApi.runTask.bind(schedulesApi);
 }
 
 // Export a singleton instance for backward compatibility
