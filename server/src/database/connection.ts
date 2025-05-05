@@ -47,6 +47,10 @@ export class Repository<T> {
   constructor(entityName: string) {
     this.entityName = entityName;
   }
+  async find(obj?: any): Promise<any[]> {
+    const repository = AppDataSource.getRepository(this.entityName);
+    return repository.find(obj);
+  }
 
   async findAll(): Promise<any[]> {
     const repository = AppDataSource.getRepository(this.entityName);

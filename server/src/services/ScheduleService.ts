@@ -15,7 +15,7 @@ export class ScheduleService {
   private activeCronJobs: Map<string, cron.ScheduledTask>;
 
   constructor() {
-    this.scheduleRepository = new Repository<Schedule>('schedules');
+    this.scheduleRepository = new Repository<Schedule>("schedules");
     this.logService = new LogService();
     this.siteService = new SiteService();
     this.activeCronJobs = new Map();
@@ -30,15 +30,17 @@ export class ScheduleService {
     const schedules = await this.scheduleRepository.findAll();
 
     // Get site information for each schedule
-    const enrichedSchedules = await Promise.all(schedules.map(async (schedule) => {
-      if (schedule.site_id) {
-        const site = await this.siteService.findBySiteId(schedule.site_id);
-        if (site) {
-          return { ...schedule, site_name: site.site_name };
+    const enrichedSchedules = await Promise.all(
+      schedules.map(async (schedule) => {
+        if (schedule.site_id) {
+          const site = await this.siteService.findBySiteId(schedule.site_id);
+          if (site) {
+            return { ...schedule, site_name: site.site_name };
+          }
         }
-      }
-      return { ...schedule, site_name: null };
-    }));
+        return { ...schedule, site_name: null };
+      })
+    );
 
     return enrichedSchedules as Schedule[];
   }
@@ -51,14 +53,19 @@ export class ScheduleService {
     return this.scheduleRepository.findOne({ id });
   }
 
-  async create(scheduleData: Partial<Schedule>, loggedInUserId?: string): Promise<Schedule> {
+  async create(
+    scheduleData: Partial<Schedule>,
+    loggedInUserId?: string
+  ): Promise<Schedule> {
     // Initialize Data Source if not already initialized
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
     }
 
     // Calculate next run time based on cron expression
-    const nextRunTime = this.calculateNextRunTime(scheduleData.cron_expression!);
+    const nextRunTime = this.calculateNextRunTime(
+      scheduleData.cron_expression!
+    );
     scheduleData.next_run_time = nextRunTime;
 
     const schedule = await this.scheduleRepository.create(scheduleData);
@@ -78,7 +85,11 @@ export class ScheduleService {
     return schedule;
   }
 
-  async update(id: string, scheduleData: Partial<Schedule>, loggedInUserId?: string): Promise<Schedule> {
+  async update(
+    id: string,
+    scheduleData: Partial<Schedule>,
+    loggedInUserId?: string
+  ): Promise<Schedule> {
     // Initialize Data Source if not already initialized
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
@@ -91,10 +102,15 @@ export class ScheduleService {
 
     // If cron expression is updated, recalculate next run time
     if (scheduleData.cron_expression) {
-      scheduleData.next_run_time = this.calculateNextRunTime(scheduleData.cron_expression);
+      scheduleData.next_run_time = this.calculateNextRunTime(
+        scheduleData.cron_expression
+      );
     }
 
-    const updatedSchedule = await this.scheduleRepository.update(id, scheduleData);
+    const updatedSchedule = await this.scheduleRepository.update(
+      id,
+      scheduleData
+    );
 
     // Update or restart the cron job if necessary
     if (scheduleData.cron_expression || scheduleData.status) {
@@ -102,7 +118,7 @@ export class ScheduleService {
       this.stopCronJob(id);
 
       // Start a new one if the schedule is active
-      if (updatedSchedule.status === 'active') {
+      if (updatedSchedule.status === "active") {
         await this.startCronJob(updatedSchedule);
       }
     }
@@ -148,8 +164,8 @@ export class ScheduleService {
   private calculateNextRunTime(cronExpression: string): Date | null {
     try {
       // Special case for one-time schedules - this is a simplified approach
-      if (cronExpression.includes('once')) {
-        const parts = cronExpression.split(' ');
+      if (cronExpression.includes("once")) {
+        const parts = cronExpression.split(" ");
         const date = new Date();
         date.setMinutes(parseInt(parts[0]));
         date.setHours(parseInt(parts[1]));
@@ -162,28 +178,28 @@ export class ScheduleService {
       if (cron.validate(cronExpression)) {
         // Get the next execution date
         const task = cron.schedule(cronExpression, () => {});
-        
+
         // Use a different approach to get the next date since nextDate() is not available
         const date = new Date();
         // Add a small offset to ensure we get the next occurrence
         date.setSeconds(date.getSeconds() + 1);
-        
+
         // We'll stop the task since we just needed it to calculate the next run
         task.stop();
-        
+
         return date;
       }
-      
+
       return null;
     } catch (error) {
-      console.error('Error calculating next run time:', error);
+      console.error("Error calculating next run time:", error);
       return null;
     }
   }
 
   private async startCronJob(schedule: Schedule): Promise<void> {
     // Don't start if not active
-    if (schedule.status !== 'active') return;
+    if (schedule.status !== "active") return;
 
     try {
       // Stop any existing job for this schedule
@@ -201,29 +217,36 @@ export class ScheduleService {
 
           // Update the last run time and calculate next run time
           const now = new Date();
-          const nextRunTime = this.calculateNextRunTime(schedule.cron_expression);
-          
-          await this.scheduleRepository.update(schedule.id, { 
+          const nextRunTime = this.calculateNextRunTime(
+            schedule.cron_expression
+          );
+
+          await this.scheduleRepository.update(schedule.id, {
             last_run_time: now,
-            next_run_time: nextRunTime
+            next_run_time: nextRunTime,
           });
         } catch (error: any) {
-          console.error(`Error executing scheduled task ${schedule.id}:`, error);
+          console.error(
+            `Error executing scheduled task ${schedule.id}:`,
+            error
+          );
           // Log the error but don't stop the schedule
           await this.logService.create({
             action: "error",
             entity: "schedules",
             entity_id: schedule.id,
-            details: { error: error?.message || 'Unknown error' },
+            details: { error: error?.message || "Unknown error" },
           });
         }
       });
 
       // Store the job in the map
       this.activeCronJobs.set(schedule.id, job);
-      
+
       // Log that the job has been scheduled
-      console.log(`Scheduled job ${schedule.id} with cron expression ${schedule.cron_expression}`);
+      console.log(
+        `Scheduled job ${schedule.id} with cron expression ${schedule.cron_expression}`
+      );
     } catch (error) {
       console.error(`Error scheduling job ${schedule.id}:`, error);
     }
@@ -245,8 +268,8 @@ export class ScheduleService {
     }
 
     // Get all active schedules
-    const schedules = await this.scheduleRepository.findAll({ 
-      status: 'active' 
+    const schedules = await this.scheduleRepository.find({
+      status: "active",
     });
 
     // Start each schedule
@@ -264,16 +287,16 @@ export class ScheduleService {
     }
 
     // Find the corresponding site script
-    const scriptsBasePath = path.join(__dirname, '..', 'site');
-    let scriptPath = '';
-    
+    const scriptsBasePath = path.join(__dirname, "..", "site");
+    let scriptPath = "";
+
     // Find the script based on site_id pattern
     if (siteId === process.env.I_RIK_VIP_ID) {
-      scriptPath = path.join(scriptsBasePath, 'i-rik-vip', 'index.ts');
+      scriptPath = path.join(scriptsBasePath, "i-rik-vip", "index.ts");
     } else if (siteId === process.env.PLAY_IWIN_BIO_ID) {
-      scriptPath = path.join(scriptsBasePath, 'play-iwin-bio', 'index.ts');
+      scriptPath = path.join(scriptsBasePath, "play-iwin-bio", "index.ts");
     } else if (siteId === process.env.PLAY_B52_CC_ID) {
-      scriptPath = path.join(scriptsBasePath, 'play-b52-cc', 'index.ts');
+      scriptPath = path.join(scriptsBasePath, "play-b52-cc", "index.ts");
     }
 
     if (!fs.existsSync(scriptPath)) {
@@ -281,28 +304,30 @@ export class ScheduleService {
     }
 
     console.log(`Running script for site ${site.site_name} at ${scriptPath}`);
-    
+
     // Execute the script with ts-node
-    const child = spawn('npx', ['ts-node', scriptPath], {
-      cwd: path.join(__dirname, '..', '..'),
-      stdio: 'pipe',
-      env: process.env
+    const child = spawn("npx", ["ts-node", scriptPath], {
+      cwd: path.join(__dirname, "..", ".."),
+      stdio: "pipe",
+      env: process.env,
     });
-    
+
     // Log output
-    child.stdout.on('data', (data) => {
+    child.stdout.on("data", (data) => {
       console.log(`[${site.site_name}] ${data}`);
     });
-    
-    child.stderr.on('data', (data) => {
+
+    child.stderr.on("data", (data) => {
       console.error(`[${site.site_name}] ERROR: ${data}`);
     });
-    
+
     // Handle process exit
-    child.on('close', (code) => {
-      console.log(`Child process for ${site.site_name} exited with code ${code}`);
+    child.on("close", (code) => {
+      console.log(
+        `Child process for ${site.site_name} exited with code ${code}`
+      );
     });
-    
+
     // Log the action
     await this.logService.create({
       action: "run",
@@ -315,7 +340,7 @@ export class ScheduleService {
   async runAllSites(): Promise<void> {
     // Get all sites
     const sites = await this.siteService.findAll();
-    
+
     // Run each site
     for (const site of sites) {
       try {
