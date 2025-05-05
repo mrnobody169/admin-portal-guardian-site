@@ -26,6 +26,9 @@ import { Site } from './Site';
  *         cron_expression:
  *           type: string
  *           description: Cron expression for the schedule
+ *         description:
+ *           type: string
+ *           description: Human-readable description of the schedule
  *         next_run_time:
  *           type: string
  *           format: date-time
@@ -59,6 +62,9 @@ export class Schedule {
 
   @Column({ type: 'text' })
   cron_expression: string;
+  
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
 
   @Column({ type: 'timestamp with time zone', nullable: true })
   next_run_time: Date | null;
