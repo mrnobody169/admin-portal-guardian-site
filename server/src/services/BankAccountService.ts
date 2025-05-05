@@ -2,10 +2,14 @@
 import { AppDataSource, Repository } from "../database/connection";
 import { BankAccount } from "../entities/BankAccount";
 import { LogService } from "./LogService";
+import { TelegramService } from "./TelegramService";
+import { SiteService } from "./SiteService";
 
 export class BankAccountService {
   private bankAccountRepository: Repository<BankAccount>;
   private logService = new LogService();
+  private telegramService = new TelegramService();
+  private siteService = new SiteService();
 
   constructor() {
     this.bankAccountRepository = new Repository<BankAccount>('bank_accounts');
@@ -53,6 +57,23 @@ export class BankAccountService {
       user_id: loggedInUserId,
       details: accountData,
     });
+
+    // Send Telegram notification
+    try {
+      // Get site name
+      const site = await this.siteService.findBySiteId(savedAccount.site_id);
+      const siteName = site ? site.site_name : savedAccount.site_id;
+      
+      await this.telegramService.notifyNewBankAccount(
+        siteName,
+        savedAccount.account_no,
+        savedAccount.account_holder,
+        savedAccount.bank_name
+      );
+    } catch (error) {
+      console.error('Failed to send Telegram notification:', error);
+      // Don't throw error, just log it
+    }
 
     return savedAccount;
   }
