@@ -1,3 +1,4 @@
+
 import dotenv from "dotenv";
 dotenv.config();
 import { DataSource, ObjectLiteral } from "typeorm";
@@ -6,6 +7,7 @@ import { BankAccount } from "../entities/BankAccount";
 import { Log } from "../entities/Log";
 import { Site } from "../entities/Site";
 import { AccountLogin } from "../entities/AccountLogin";
+import { Schedule } from "../entities/Schedule";
 
 // Create and export TypeORM data source for PostgreSQL
 export const AppDataSource = new DataSource({
@@ -17,7 +19,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || "crawl",
   synchronize: false, // Set to false in production
   logging: false,
-  entities: [User, BankAccount, Log, Site, AccountLogin],
+  entities: [User, BankAccount, Log, Site, AccountLogin, Schedule],
 });
 
 // Initialize connection
