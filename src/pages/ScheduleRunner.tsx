@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -82,6 +83,8 @@ const ScheduleRunner = () => {
   const [sites, setSites] = useState<Site[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dataFetched, setDataFetched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -97,15 +100,25 @@ const ScheduleRunner = () => {
   // Load sites and existing schedules
   useEffect(() => {
     const fetchData = async () => {
+      if (dataFetched) return;
+      
       setLoading(true);
+      setError(null);
+      
       try {
+        // Fetch sites first
         const sitesData = await schedulesApi.getSites();
-        setSites(sitesData);
+        setSites(sitesData || []);
         
+        // Then fetch schedules
         const schedulesData = await schedulesApi.getAllSchedules();
-        setSchedules(schedulesData);
-      } catch (error) {
+        setSchedules(schedulesData || []);
+        
+        // Mark data as fetched to prevent re-fetching
+        setDataFetched(true);
+      } catch (error: any) {
         console.error("Error fetching data:", error);
+        setError(error?.message || "Failed to load data");
         toast({
           variant: "destructive",
           title: "Error loading data",
@@ -117,8 +130,9 @@ const ScheduleRunner = () => {
     };
 
     fetchData();
-  }, [toast]);
+  }, [toast, dataFetched]);
 
+  // Safe function to handle form submission
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true);
@@ -131,10 +145,9 @@ const ScheduleRunner = () => {
           if (values.run_date && values.run_time) {
             const date = new Date(values.run_date);
             const [hours, minutes] = values.run_time.split(':').map(Number);
-            date.setHours(hours, minutes);
+            date.setHours(hours || 0, minutes || 0);
             
             // Format date as cron expression for one-time run
-            // This is just a placeholder, the backend will handle the scheduling
             cronExpression = `${date.getMinutes()} ${date.getHours()} ${date.getDate()} ${date.getMonth() + 1} *`;
           }
           break;
@@ -146,19 +159,19 @@ const ScheduleRunner = () => {
         case 'daily':
           if (values.run_time) {
             const [hours, minutes] = values.run_time.split(':').map(Number);
-            cronExpression = `${minutes} ${hours} * * *`;
+            cronExpression = `${minutes || 0} ${hours || 0} * * *`;
           }
           break;
         case 'weekly':
           if (values.run_date && values.run_time) {
             const [hours, minutes] = values.run_time.split(':').map(Number);
-            cronExpression = `${minutes} ${hours} * * ${values.run_date.getDay()}`;
+            cronExpression = `${minutes || 0} ${hours || 0} * * ${values.run_date.getDay()}`;
           }
           break;
         case 'monthly':
           if (values.run_date && values.run_time) {
             const [hours, minutes] = values.run_time.split(':').map(Number);
-            cronExpression = `${minutes} ${hours} ${values.run_date.getDate()} * *`;
+            cronExpression = `${minutes || 0} ${hours || 0} ${values.run_date.getDate()} * *`;
           }
           break;
         case 'custom':
@@ -173,24 +186,32 @@ const ScheduleRunner = () => {
         status: 'active'
       };
 
-      await schedulesApi.createSchedule(scheduleData);
-      toast({
-        title: "Schedule created",
-        description: "Your schedule has been created successfully.",
-      });
+      const result = await schedulesApi.createSchedule(scheduleData);
       
-      // Refresh schedules list
-      const updatedSchedules = await schedulesApi.getAllSchedules();
-      setSchedules(updatedSchedules);
-      
-      // Reset form
-      form.reset();
-    } catch (error) {
+      if (result) {
+        toast({
+          title: "Schedule created",
+          description: "Your schedule has been created successfully.",
+        });
+        
+        // Refresh schedules list
+        const updatedSchedules = await schedulesApi.getAllSchedules();
+        if (updatedSchedules) {
+          setSchedules(updatedSchedules);
+        }
+        
+        // Reset form
+        form.reset({
+          site_id: null,
+          schedule_type: 'once',
+        });
+      }
+    } catch (error: any) {
       console.error("Error creating schedule:", error);
       toast({
         variant: "destructive",
         title: "Error creating schedule",
-        description: "Failed to create schedule. Please try again.",
+        description: error?.message || "Failed to create schedule. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -205,12 +226,12 @@ const ScheduleRunner = () => {
         title: "Task started",
         description: siteId ? "Site crawl started successfully" : "All sites crawl started successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error running task:", error);
       toast({
         variant: "destructive",
         title: "Error running task",
-        description: "Failed to start the task. Please try again.",
+        description: error?.message || "Failed to start the task. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -221,19 +242,20 @@ const ScheduleRunner = () => {
     try {
       setLoading(true);
       await schedulesApi.deleteSchedule(id);
+      
       toast({
         title: "Schedule deleted",
         description: "The schedule has been deleted successfully.",
       });
       
-      // Remove the deleted schedule from state
-      setSchedules(schedules.filter(schedule => schedule.id !== id));
-    } catch (error) {
+      // Remove the deleted schedule from state without refetching
+      setSchedules(prevSchedules => prevSchedules.filter(schedule => schedule.id !== id));
+    } catch (error: any) {
       console.error("Error deleting schedule:", error);
       toast({
         variant: "destructive",
         title: "Error deleting schedule",
-        description: "Failed to delete the schedule. Please try again.",
+        description: error?.message || "Failed to delete the schedule. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -243,16 +265,56 @@ const ScheduleRunner = () => {
   const getNextRunText = (schedule: Schedule) => {
     if (!schedule.next_run_time) return 'Not scheduled';
     
-    const nextRun = new Date(schedule.next_run_time);
-    return format(nextRun, 'MMM dd, yyyy HH:mm');
+    try {
+      const nextRun = new Date(schedule.next_run_time);
+      return format(nextRun, 'MMM dd, yyyy HH:mm');
+    } catch (e) {
+      return 'Invalid date';
+    }
   };
 
   const getLastRunText = (schedule: Schedule) => {
     if (!schedule.last_run_time) return 'Never run';
     
-    const lastRun = new Date(schedule.last_run_time);
-    return format(lastRun, 'MMM dd, yyyy HH:mm');
+    try {
+      const lastRun = new Date(schedule.last_run_time);
+      return format(lastRun, 'MMM dd, yyyy HH:mm');
+    } catch (e) {
+      return 'Invalid date';
+    }
   };
+
+  // Show loading state
+  if (loading && !dataFetched) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Loading Schedule Runner...</h2>
+            <p className="text-muted-foreground">Please wait while we fetch your data.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error && !dataFetched) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex flex-col items-center justify-center h-64">
+          <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Data</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button onClick={() => {
+            setError(null);
+            setDataFetched(false);
+          }}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8">
