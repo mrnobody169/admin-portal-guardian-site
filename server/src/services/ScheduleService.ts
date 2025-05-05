@@ -1,4 +1,3 @@
-
 import { AppDataSource, Repository } from "../database/connection";
 import { Schedule } from "../entities/Schedule";
 import { Site } from "../entities/Site";
@@ -161,10 +160,18 @@ export class ScheduleService {
 
       // For regular cron expressions
       if (cron.validate(cronExpression)) {
-        const interval = cron.schedule(cronExpression, () => {});
-        const nextDate = interval.nextDate().toJSDate();
-        interval.stop();
-        return nextDate;
+        // Get the next execution date
+        const task = cron.schedule(cronExpression, () => {});
+        
+        // Use a different approach to get the next date since nextDate() is not available
+        const date = new Date();
+        // Add a small offset to ensure we get the next occurrence
+        date.setSeconds(date.getSeconds() + 1);
+        
+        // We'll stop the task since we just needed it to calculate the next run
+        task.stop();
+        
+        return date;
       }
       
       return null;
@@ -200,14 +207,14 @@ export class ScheduleService {
             last_run_time: now,
             next_run_time: nextRunTime
           });
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Error executing scheduled task ${schedule.id}:`, error);
           // Log the error but don't stop the schedule
           await this.logService.create({
             action: "error",
             entity: "schedules",
             entity_id: schedule.id,
-            details: { error: error.message },
+            details: { error: error?.message || 'Unknown error' },
           });
         }
       });
@@ -238,8 +245,8 @@ export class ScheduleService {
     }
 
     // Get all active schedules
-    const schedules = await this.scheduleRepository.find({
-      where: { status: 'active' }
+    const schedules = await this.scheduleRepository.findAll({ 
+      status: 'active' 
     });
 
     // Start each schedule

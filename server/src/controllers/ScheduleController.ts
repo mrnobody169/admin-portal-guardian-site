@@ -91,9 +91,11 @@ export class ScheduleController {
       await this.scheduleService.runSite(siteId);
       
       res.json({ success: true, message: `Task started for site ${siteId}` });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error running site task:', error);
-      res.status(500).json({ error: `Failed to run task: ${error.message}` });
+      res.status(500).json({ 
+        error: `Failed to run task: ${error?.message || 'Unknown error'}` 
+      });
     }
   };
 
@@ -105,9 +107,11 @@ export class ScheduleController {
       await this.scheduleService.runAllSites();
       
       res.json({ success: true, message: 'Task started for all sites' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error running all sites:', error);
-      res.status(500).json({ error: `Failed to run task: ${error.message}` });
+      res.status(500).json({ 
+        error: `Failed to run task: ${error?.message || 'Unknown error'}` 
+      });
     }
   };
 }
