@@ -5,7 +5,7 @@ export class BaseApiService {
   protected apiUrl: string;
 
   constructor() {
-    this.apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+    this.apiUrl = import.meta.env.VITE_API_URL || 'http://10.148.0.3:4000/api';
   }
 
   protected getHeaders() {

@@ -41,11 +41,41 @@
       "max": 1000000000
     },
     {
+      "bankcode": "PVcombank",
+      "name": "PVcombank",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "tcb",
+      "nicepay_code": "PVCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
       "bankcode": "NamABank",
       "name": "Nam A Bank",
       "statement_time": [],
       "tl": 1,
       "nicepay_code": "NAB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "ACB",
+      "name": "ACB",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "",
+      "nicepay_code": "ACB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "VCB",
+      "name": "Vietcombank",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "bidv",
+      "nicepay_code": "VCB",
       "min": 20000,
       "max": 1000000000
     },
@@ -66,6 +96,16 @@
       "tl": 1,
       "navigate_bank_code_cp": "vcb",
       "nicepay_code": "BIDV",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "VietinBank",
+      "name": "VietinBank",
+      "statement_time": [],
+      "tl": 1,
+      "navigate_bank_code_cp": "vcb",
+      "nicepay_code": "ICB",
       "min": 20000,
       "max": 1000000000
     },
@@ -109,15 +149,6 @@
       "max": 1000000000
     },
     {
-      "bankcode": "LPB",
-      "name": "LocPhat Bank",
-      "statement_time": [],
-      "tl": 1,
-      "nicepay_code": "LPB",
-      "min": 20000,
-      "max": 1000000000
-    },
-    {
       "bankcode": "Vietbank",
       "name": "Vietbank",
       "tl": 1,
@@ -128,42 +159,6 @@
     {
       "bankcode": "Sacombank",
       "name": "Sacombank",
-      "statement_time": [],
-      "tl": 3,
-      "navigate_bank_code_cp": "NCB",
-      "min": 20000,
-      "max": 1000000000
-    },
-    {
-      "bankcode": "PVcombank",
-      "name": "PVcombank",
-      "statement_time": [],
-      "tl": 3,
-      "navigate_bank_code_cp": "NCB",
-      "min": 20000,
-      "max": 1000000000
-    },
-    {
-      "bankcode": "ACB",
-      "name": "ACB",
-      "statement_time": [],
-      "tl": 3,
-      "navigate_bank_code_cp": "NCB",
-      "min": 20000,
-      "max": 1000000000
-    },
-    {
-      "bankcode": "VCB",
-      "name": "Vietcombank",
-      "statement_time": [],
-      "tl": 3,
-      "navigate_bank_code_cp": "NCB",
-      "min": 20000,
-      "max": 1000000000
-    },
-    {
-      "bankcode": "VietinBank",
-      "name": "VietinBank",
       "statement_time": [],
       "tl": 3,
       "navigate_bank_code_cp": "NCB",
@@ -200,6 +195,15 @@
     {
       "bankcode": "BacABank",
       "name": "Bac A Bank",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "LPB",
+      "name": "LocPhat Bank",
       "statement_time": [],
       "tl": 3,
       "navigate_bank_code_cp": "NCB",

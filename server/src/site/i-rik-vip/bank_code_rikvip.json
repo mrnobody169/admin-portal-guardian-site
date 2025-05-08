@@ -9,6 +9,12 @@
       "tl": 1
     },
     {
+      "bankcode": "Eximbank",
+      "name": "Eximbank",
+      "statement_time": null,
+      "tl": 1
+    },
+    {
       "bankcode": "BIDV",
       "name": "BIDV",
       "statement_time": null,
@@ -39,14 +45,14 @@
       "tl": 1
     },
     {
-      "bankcode": "DongA",
-      "name": "VikkiBank",
+      "bankcode": "Maritimebank",
+      "name": "MSB",
       "statement_time": null,
       "tl": 1
     },
     {
-      "bankcode": "Maritimebank",
-      "name": "MSB",
+      "bankcode": "DongA",
+      "name": "VikkiBank",
       "statement_time": null,
       "tl": 1
     },

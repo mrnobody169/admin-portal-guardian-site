@@ -3,6 +3,12 @@
   "code": 200,
   "rows": [
     {
+      "bankcode": "PGB",
+      "name": "PGBank",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
       "bankcode": "Eximbank",
       "name": "Eximbank",
       "statement_time": [],
@@ -11,6 +17,12 @@
     {
       "bankcode": "BIDV",
       "name": "BIDV",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "MBbank",
+      "name": "MBBank",
       "statement_time": [],
       "tl": 1
     },
@@ -57,6 +69,24 @@
       "tl": 1
     },
     {
+      "bankcode": "ACB",
+      "name": "ACB",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "VietinBank",
+      "name": "VietinBank",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "PVcombank",
+      "name": "PVcomBank",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
       "bankcode": "NamABank",
       "name": "NamABank",
       "statement_time": [],
@@ -71,6 +101,12 @@
     {
       "bankcode": "SEAB",
       "name": "SeABank",
+      "statement_time": [],
+      "tl": 1
+    },
+    {
+      "bankcode": "VCB",
+      "name": "Vietcombank",
       "statement_time": [],
       "tl": 1
     },

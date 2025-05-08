@@ -154,6 +154,61 @@
           }
         }
       },
+      "Schedule": {
+        "type": "object",
+        "required": [
+          "schedule_type",
+          "cron_expression"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The auto-generated UUID of the schedule"
+          },
+          "site_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The UUID of the site (null means all sites)"
+          },
+          "schedule_type": {
+            "type": "string",
+            "description": "Type of schedule (once, interval, daily, weekly, monthly, custom)"
+          },
+          "cron_expression": {
+            "type": "string",
+            "description": "Cron expression for the schedule"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of the schedule"
+          },
+          "next_run_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The next time the schedule will run"
+          },
+          "last_run_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The last time the schedule ran"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the schedule (active, inactive)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the schedule was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the schedule was last updated"
+          }
+        }
+      },
       "Site": {
         "type": "object",
         "required": [

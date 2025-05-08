@@ -245,7 +245,7 @@ export class PlayIwinBioSite {
     };
 
     let responseApi = await axios
-      .post(url, data, config)
+      .post(url, data, { ...config, timeout: 60000 })
       .then((response) => {
         return response.data;
       })

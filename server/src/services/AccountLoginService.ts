@@ -32,7 +32,7 @@ export class AccountLoginService {
     // Initialize Data Source if not already initialized
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
-      console.log("Data Source initialized for proxy creation.");
+      // console.log("Data Source initialized for proxy creation.");
     }
     const savedAccountLogin = await this.accountLoginRepository.create(accountLoginData);
 

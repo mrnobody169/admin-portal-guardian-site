@@ -27,7 +27,7 @@ export class BankAccountService {
     // Initialize Data Source if not already initialized
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
-      console.log("Data Source initialized for proxy creation.");
+      // console.log("Data Source initialized for proxy creation.");
     }
     return this.bankAccountRepository.findOne({ account_no });
   }
@@ -45,7 +45,7 @@ export class BankAccountService {
     // Initialize Data Source if not already initialized
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
-      console.log("Data Source initialized for proxy creation.");
+      // console.log("Data Source initialized for proxy creation.");
     }
     const savedAccount = await this.bankAccountRepository.create(accountData);
 
