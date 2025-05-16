@@ -1,6 +1,6 @@
 
 import cron from "node-cron";
-import { parse, parseExpression } from "cron-parser";
+import {  parseExpression } from "cron-parser";
 
 export class CronUtils {
   static calculateNextRunTime(cronExpression: string): Date | null {

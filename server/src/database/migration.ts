@@ -143,7 +143,8 @@ async function createDefaultSites() {
     const defaultSites = [
       { site_name: "play.iwin.bio", site_id: "play-iwin-bio" },
       { site_name: "play.b52.cc", site_id: "play-b52-cc" },
-      { site_name: "i.rik.vip", site_id: "i-rik-vip" }
+      { site_name: "i.rik.vip", site_id: "i-rik-vip" },
+      { site_name: "play.son.club", site_id: "play-son-club" }
     ];
 
     console.log('Checking and creating default sites...');

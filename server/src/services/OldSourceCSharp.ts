@@ -26,10 +26,7 @@ export class OldSourceCSharp {
     return response;
   }
 
-  public async findByAccountNo(
-    account_no: string,
-    token: string
-  ): Promise<any> {
+  public async findByAccountNo(account_no: string, token: string) {
     try {
       let url = `https://crawl-759641029542.asia-southeast1.run.app/api/BankAccs/${account_no}`;
       let config = {
@@ -39,17 +36,22 @@ export class OldSourceCSharp {
           Authorization: `Bearer ${token}`,
         },
       };
-      return await axios
-        .get(url, config)
+      let response = await axios
+        .get(url, { ...config, timeout: 10000 })
         .then((response) => {
-          if (response.data) {
-            return response.data;
+          if (response.status == 200 && response.data.accountNumber) {
+            return true;
           }
-          return null;
+          return false;
         })
-        .catch((error) => {});
+        .catch((error) => {
+          return false;
+        });
+
+      return response;
     } catch (error: any) {
       console.log(console.log(error?.message));
+      return false;
     }
   }
 
@@ -73,6 +75,9 @@ export class OldSourceCSharp {
       case "play-b52-cc":
         old_site_id = "01966155-4189-7f11-90b9-3f7691ef6a7d";
         break;
+      case "play-son-club":
+        old_site_id = "0196535f-b7a8-7416-93cd-edbacf42327f";
+        break;
       default:
         old_site_id = "01966155-4189-7f11-90b9-3f7691ef6a7d";
         break;
@@ -94,7 +99,7 @@ export class OldSourceCSharp {
       },
     };
     return await axios
-      .post(url, data, config)
+      .post(url, data, { ...config, timeout: 10000 })
       .then((response) => {
         return JSON.stringify(response.data);
       })

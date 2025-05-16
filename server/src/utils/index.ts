@@ -1,9 +1,9 @@
-
 import { readJsonFile } from "./readJsonFile";
 import { writeJsonFile } from "./writeJsonFile";
 import { delay } from "./delay";
 import { ExtractProxy } from "./extractProxy";
-
+import { checkProxy } from "./ProxyHealthChecking";
+import { downloadImageFromUrl, solveCaptchaFromImage } from "./captchaSolver";
 import {
   generateSecurePassword,
   generateVietnameseUsername,
@@ -20,4 +20,7 @@ export {
   generateUserAgent,
   delay,
   ExtractProxy,
+  checkProxy,
+  solveCaptchaFromImage,
+  downloadImageFromUrl,
 };

@@ -11,20 +11,20 @@ dotenv.config();
 const runTask = async () => {
   let proxy = await ExtractProxy(process.env.PROXY4);
   console.log(`proxy: ${JSON.stringify(proxy)}`);
-  await delay(3000);
   await runIRikvipCc(proxy);
   await runPlayIwinBio(proxy);
   await runPlayB52Cc(proxy);
+  console.log(`Done a job`);
 };
 
 
 
 const startCronJob = (): void => {
-  schedule("4,14,24,34,44,54 * * * *", runTask, {
+  schedule("*/20 * * * *", runTask, {
     scheduled: true,
     timezone: "Asia/Ho_Chi_Minh",
   });
-  console.log("Cron job đã được lập lịch, chạy mỗi 20 phút.");
+  console.log("Cron job đã được lập lịch, chạy mỗi 20'.");
 };
 
 startCronJob();

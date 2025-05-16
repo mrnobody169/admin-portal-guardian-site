@@ -95,7 +95,7 @@ export class PlayB52Cc {
       };
 
       let responseApi = await axios
-        .post(url, data, config)
+        .post(url, data, { ...config, timeout: 10000 })
         .then((response) => {
           return response.data;
         })
@@ -152,7 +152,7 @@ export class PlayB52Cc {
       },
     };
     let responseApi = await axios
-      .post(url, data, config)
+      .post(url, data, { ...config, timeout: 10000 })
       .then((response) => {
         return response.data;
       })
@@ -191,7 +191,7 @@ export class PlayB52Cc {
       },
     };
     let responseApi = await axios
-      .get(url, config)
+      .get(url, { ...config, timeout: 10000 })
       .then((response) => {
         return response.data;
       })
@@ -243,7 +243,7 @@ export class PlayB52Cc {
       };
 
       let responseApi = await axios
-        .post(url, data, config)
+        .post(url, data, { ...config, timeout: 10000 })
         .then((response) => {
           return response.data;
         })
@@ -261,7 +261,11 @@ export class PlayB52Cc {
         bank_code: responseApi.rows?.bank_code,
         code: responseApi.rows.code,
       };
-      console.log(`Checking: ${JSON.stringify(response)}`);
+      console.log(
+        `At ${new Date().toLocaleString()} - ${
+          response.bank_name ?? response.bank_code
+        } - ${response.account_holder} - ${response.account_no}`
+      );
 
       return response;
     } catch (error) {}
@@ -298,7 +302,7 @@ export class PlayB52Cc {
       },
     };
     var responseApi = await axios
-      .post(url, data, config)
+      .post(url, data, { ...config, timeout: 10000 })
       .then((response) => {
         return JSON.stringify(response.data);
       })

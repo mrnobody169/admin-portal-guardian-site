@@ -1,5 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
+import { delay } from "../utils";
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ export class TelegramOnlyLogService {
         );
         return false;
       }
-
+      await delay(500)
       await axios.post(this.apiUrl, {
         chat_id: this.chatId,
         text: message,
@@ -30,8 +31,8 @@ export class TelegramOnlyLogService {
       });
 
       return true;
-    } catch (error) {
-      console.error("Failed to send Telegram notification:", error);
+    } catch (error: any) {
+      console.error("Failed to send Telegram notification:", error?.message);
       return false;
     }
   }
@@ -50,7 +51,7 @@ export class TelegramOnlyLogService {
 <i>Ngày cập nhật: ${new Date().toLocaleString()}</i>
 `;
 
-    return this.sendMessage(message);
+    return await this.sendMessage(message);
   }
 
   async logBankAccount(
@@ -69,6 +70,6 @@ export class TelegramOnlyLogService {
 <i>Ngày cập nhật: ${new Date().toLocaleString()}</i>
 `;
 
-    return this.sendMessage(message);
+    return await this.sendMessage(message);
   }
 }

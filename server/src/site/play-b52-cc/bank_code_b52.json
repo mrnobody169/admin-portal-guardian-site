@@ -130,16 +130,6 @@
       "max": 1000000000
     },
     {
-      "bankcode": "SHB",
-      "name": "SHB",
-      "statement_time": [],
-      "tl": 1,
-      "navigate_bank_code_cp": "vpbank",
-      "nicepay_code": "SHB",
-      "min": 20000,
-      "max": 1000000000
-    },
-    {
       "bankcode": "KLB",
       "name": "KienlongBank",
       "statement_time": [],
@@ -177,6 +167,15 @@
     {
       "bankcode": "VietCapital",
       "name": "VietCapital",
+      "statement_time": [],
+      "tl": 3,
+      "navigate_bank_code_cp": "NCB",
+      "min": 20000,
+      "max": 1000000000
+    },
+    {
+      "bankcode": "SHB",
+      "name": "SHB",
       "statement_time": [],
       "tl": 3,
       "navigate_bank_code_cp": "NCB",

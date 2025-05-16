@@ -6,7 +6,6 @@ import { delay } from "../../utils";
 import { HandlerService } from "../../services/HandlerService";
 import { TelegramOnlyLogService } from "../../services/TelegramOnlyLogService";
 dotenv.config();
-const telegramOnlyLogService = new TelegramOnlyLogService();
 
 export const runIRikvipCc = async (proxy: AxiosProxyConfig | false = false) => {
   let handlerService = new HandlerService();
@@ -29,11 +28,7 @@ export const runIRikvipCc = async (proxy: AxiosProxyConfig | false = false) => {
     }
     await handlerService.storeAccountLogin(account, site_id);
     console.log(`Sign Up i.rik.vip success ${JSON.stringify(account)}`);
-    // await telegramOnlyLogService.logAccountLogin(
-    //   account.username,
-    //   account.password,
-    //   account.token
-    // );
+    console.log(`====================================================\n`);
 
     //2. Update User
     pingpong = await site.updateUsername(
@@ -41,10 +36,10 @@ export const runIRikvipCc = async (proxy: AxiosProxyConfig | false = false) => {
       account.token,
       proxy
     );
-    if (pingpong) {
-      // console.log(`Update User successfully.`);
+    if (!pingpong) {
+      break outerLoop;
     }
-    await delay(2000);
+    await delay(500);
 
     //3. Get List Bank Code
     pingpong = await site.getBankCode(account.token, proxy);
@@ -63,6 +58,7 @@ export const runIRikvipCc = async (proxy: AxiosProxyConfig | false = false) => {
         break innerLoop;
       }
       await handlerService.process(bank_account, site_id);
+      // console.log(`Checked\n`);
     } while (true);
   } while (true);
   // console.log(`Stop Data Collection in https://i.rik.vip/`);
@@ -70,3 +66,4 @@ export const runIRikvipCc = async (proxy: AxiosProxyConfig | false = false) => {
   //   `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n`
   // );
 };
+// runIRikvipCc();

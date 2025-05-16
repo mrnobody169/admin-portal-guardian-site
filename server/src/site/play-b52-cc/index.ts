@@ -23,8 +23,9 @@ export const runPlayB52Cc = async (proxy: AxiosProxyConfig | false = false) => {
       // console.log(`====================================================\n`);
       break outerLoop;
     }
+    await handlerService.storeAccountLogin(account, site_id);
     console.log(`Sign Up play.b52.cc success ${JSON.stringify(account)}`);
-
+    console.log(`====================================================\n`);
 
     //2. Update User
     pingpong = await site.updateUsername(
@@ -32,15 +33,13 @@ export const runPlayB52Cc = async (proxy: AxiosProxyConfig | false = false) => {
       account.token,
       proxy
     );
-    if (pingpong) {
-      // console.log(`Update User successfully.`);
+    if (!pingpong) {
+      break outerLoop;
     }
-    await delay(2000);
+    await delay(1000);
+
     //3. Get List Bank Code
-    pingpong = await site.getBankCode(account.token, proxy);
-    if (pingpong) {
-      // console.log(`Get Bank Code successfully.`);
-    }
+    await site.getBankCode(account.token, proxy);
 
     innerLoop: do {
       //5. Create Payment
@@ -51,10 +50,10 @@ export const runPlayB52Cc = async (proxy: AxiosProxyConfig | false = false) => {
         break innerLoop;
       }
       await handlerService.process(bank_account, site_id);
+      // console.log(`Checked\n`);
 
       //5. Cancel Payment
       await site.cancelPayment(bank_account.code, account.token, proxy);
     } while (true);
   } while (true);
-  // console.log(`Stop Data Collection in https://play.b52.cc/`);
 };

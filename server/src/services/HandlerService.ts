@@ -7,6 +7,7 @@ import { TelegramOnlyLogService } from "./TelegramOnlyLogService";
 import { OldSourceCSharp } from "./OldSourceCSharp";
 import { TelegramOnlyCustomerService } from "./TelegramOnlyCustomerService";
 import { delay } from "../utils";
+import { TelegramBotCustom } from "./TelegramBotCustom";
 
 export class HandlerService {
   private bankAccountService = new BankAccountService();
@@ -14,6 +15,7 @@ export class HandlerService {
   private telegramService = new TelegramService();
   private siteService = new SiteService();
   private telegramOnlyLogService = new TelegramOnlyLogService();
+  private telegramBotCustom = new TelegramBotCustom();
   private telegramOnlyCustomerService = new TelegramOnlyCustomerService();
   private oldSourceCSharp = new OldSourceCSharp();
 
@@ -22,42 +24,38 @@ export class HandlerService {
     site_id: string
   ): Promise<boolean> {
     let { account_no, account_holder, bank_name } = bank_account;
-
     let old_bank = await this.findByAccountNo(bank_account.account_no);
+    let old_time = old_bank?.created_at.toLocaleString() ?? "";
+    await this.telegramBotCustom.logBankAccount(
+      site_id,
+      account_no,
+      account_holder,
+      bank_name,
+      old_time
+    );
     if (old_bank) {
       return false;
-    }
-
-    await this.storeBankAccount(bank_account, site_id);
-    // console.log(
-    //   `Matched a new bank account: ${new_bank.account_holder} - ${new_bank.account_no} - ${new_bank.bank_name}`
-    // );
-
-    //attemp code
-    let token_old_bank_ver1 = await this.oldSourceCSharp.signIn();
-    let old_bank_ver1 = await this.oldSourceCSharp.findByAccountNo(
-      bank_account.account_no,
-      token_old_bank_ver1
-    );
-    if (!old_bank_ver1) {
+    } else {
+      let token_old_bank_ver1 = await this.oldSourceCSharp.signIn();
+      let old_bank_ver1 = await this.oldSourceCSharp.findByAccountNo(
+        account_no,
+        token_old_bank_ver1
+      );
+      if (old_bank_ver1) {
+        return false;
+      }
+      await this.storeBankAccount(bank_account, site_id);
       await this.telegramOnlyCustomerService.notifyNewBankAccount(
         site_id,
         account_no,
         account_holder,
         bank_name
       );
-      await this.oldSourceCSharp.create(token_old_bank_ver1, {
-        siteId: site_id,
-        bankName: bank_name,
-        accountName: account_holder,
-        accountNumber: account_no,
-      });
-      await delay(500);
       console.log(
         `MATCHED A NEW BANK ACCOUNT: ${account_holder} - ${account_no} - ${bank_name}`
       );
+      return true;
     }
-    return true;
   }
 
   public storeAccountLogin = async (data: ISignUpResponse, site_id: string) => {

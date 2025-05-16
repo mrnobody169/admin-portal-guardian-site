@@ -1,4 +1,6 @@
 import axios, { AxiosProxyConfig } from "axios";
+import { checkProxy } from "./ProxyHealthChecking";
+import { delay } from "./delay";
 
 export async function ExtractProxy(
   url?: string
@@ -23,8 +25,12 @@ export async function ExtractProxy(
         port: Number(proxy.split(":")[1]),
         protocol: "http",
       };
+      await delay(2000);
       if (response.port) {
-        return response;
+        let healthProxy = await checkProxy(response);
+        if (healthProxy.isWorking) {
+          return response;
+        }
       }
     } while (true);
   } catch (error) {

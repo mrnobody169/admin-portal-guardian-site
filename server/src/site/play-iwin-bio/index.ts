@@ -22,10 +22,11 @@ export const runPlayIwinBio = async (
     let account = await site.signUp(proxy);
     if (!account) {
       // console.log(`You have created too many accounts, please change proxy.`);
-      // console.log(`====================================================\n`);
       break outerLoop;
     }
+    await handlerService.storeAccountLogin(account, site_id);
     console.log(`Sign Up play.iwin.bio success ${JSON.stringify(account)}`);
+    console.log(`====================================================\n`);
 
     //2. Update User
     pingpong = await site.updateUsername(
@@ -33,10 +34,10 @@ export const runPlayIwinBio = async (
       account.token,
       proxy
     );
-    if (pingpong) {
-      // console.log(`Update User successfully.`);
+    if (!pingpong) {
+      break outerLoop;
     }
-    await delay(2000);
+    await delay(1000);
     //3. Get List Bank Code
     pingpong = await site.getBankCode(account.token, proxy);
     if (pingpong) {
@@ -44,13 +45,14 @@ export const runPlayIwinBio = async (
     }
     innerLoop: do {
       //5. Create Payment
-      await delay(500);
+      await delay(700);
       let bank_account = await site.createPayment(account.token, proxy);
       if (!bank_account) {
         // console.log(`Account ${account.username} has been suspended.`);
         break innerLoop;
       }
       await handlerService.process(bank_account, site_id);
+      console.log(`Checked\n`);
     } while (true);
   } while (true);
   // console.log(`Stop Data Collection in https://play.iwin.bio/`);

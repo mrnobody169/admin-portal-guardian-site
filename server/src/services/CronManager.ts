@@ -81,12 +81,12 @@ export class CronManager {
   
   getActiveJobsInfo(): { id: string; expression: string }[] {
     const jobsInfo: { id: string; expression: string }[] = [];
-    this.activeCronJobs.forEach((job, scheduleId) => {
-      jobsInfo.push({
-        id: scheduleId,
-        expression: job.getExpression()
-      });
-    });
+    // this.activeCronJobs.forEach((job, scheduleId) => {
+    //   jobsInfo.push({
+    //     id: scheduleId,
+    //     expression: job.getExpression()
+    //   });
+    // });
     return jobsInfo;
   }
 }

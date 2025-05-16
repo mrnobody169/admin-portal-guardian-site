@@ -1,0 +1,84 @@
+{
+  "apps": [
+    {
+      "name": "index_freeport1",
+      "script": "./src/site/play-son-club/index_freeport1.ts",
+      "interpreter": "node",
+      "interpreter_args": "-r ts-node/register",
+      "exec_mode": "fork",
+      "instances": 1,
+      "autorestart": false,
+      "watch": false
+    },
+    {
+      "name": "index_freeport2",
+      "script": "./src/site/play-son-club/index_freeport2.ts",
+      "interpreter": "node",
+      "interpreter_args": "-r ts-node/register",
+      "exec_mode": "fork",
+      "instances": 1,
+      "autorestart": false,
+      "watch": false
+    },
+    {
+      "name": "play-son-club_proxy0",
+      "script": "./src/site/play-son-club/index.ts",
+      "interpreter": "node",
+      "interpreter_args": "-r ts-node/register",
+      "exec_mode": "fork",
+      "instances": 1,
+      "autorestart": false,
+      "watch": false
+    },
+    {
+      "name": "play-son-club_proxy12",
+      "script": "./src/site/play-son-club/index12.ts",
+      "interpreter": "node",
+      "interpreter_args": "-r ts-node/register",
+      "exec_mode": "fork",
+      "instances": 1,
+      "autorestart": false,
+      "watch": false
+    },
+    {
+      "name": "play-son-club_proxy13",
+      "script": "./src/site/play-son-club/index13.ts",
+      "interpreter": "node",
+      "interpreter_args": "-r ts-node/register",
+      "exec_mode": "fork",
+      "instances": 1,
+      "autorestart": false,
+      "watch": false
+    },
+    {
+      "name": "play-son-club_proxy14",
+      "script": "./src/site/play-son-club/index14.ts",
+      "interpreter": "node",
+      "interpreter_args": "-r ts-node/register",
+      "exec_mode": "fork",
+      "instances": 1,
+      "autorestart": false,
+      "watch": false
+    },
+    {
+      "name": "play-son-club_proxy15",
+      "script": "./src/site/play-son-club/index15.ts",
+      "interpreter": "node",
+      "interpreter_args": "-r ts-node/register",
+      "exec_mode": "fork",
+      "instances": 1,
+      "autorestart": false,
+      "watch": false
+    },
+    {
+      "name": "rik-iwin-b52_proxy4",
+      "script": "./src/site/index4.ts",
+      "interpreter": "node",
+      "interpreter_args": "-r ts-node/register",
+      "exec_mode": "fork",
+      "instances": 1,
+      "autorestart": false,
+      "watch": false
+    }
+  ]
+}

@@ -11,10 +11,10 @@ dotenv.config();
 const runTask = async () => {
   let proxy = await ExtractProxy(process.env.PROXY9);
   console.log(`proxy: ${JSON.stringify(proxy)}`);
-  await delay(3000);
   await runIRikvipCc(proxy);
   await runPlayIwinBio(proxy);
   await runPlayB52Cc(proxy);
+  console.log(`Done a job`);
 };
 
 const startCronJob = (): void => {

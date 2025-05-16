@@ -1,5 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
+import { delay } from "../utils";
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ export class TelegramOnlyCustomerService {
         );
         return false;
       }
-
+      await delay(1000)
       await axios.post(this.apiUrl, {
         chat_id: this.chatId,
         text: message,
@@ -53,6 +54,6 @@ export class TelegramOnlyCustomerService {
 <i>Ngày cập nhật: ${new Date().toLocaleString()}</i>
 `;
 
-    return this.sendMessage(message);
+    return await this.sendMessage(message);
   }
 }

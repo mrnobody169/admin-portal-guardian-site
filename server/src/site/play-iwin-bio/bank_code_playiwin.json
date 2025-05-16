@@ -39,20 +39,14 @@
       "tl": 1
     },
     {
-      "bankcode": "SHB",
-      "name": "SHB",
+      "bankcode": "DongA",
+      "name": "VikkiBank",
       "statement_time": [],
       "tl": 1
     },
     {
       "bankcode": "Maritimebank",
       "name": "MSB",
-      "statement_time": [],
-      "tl": 1
-    },
-    {
-      "bankcode": "DongA",
-      "name": "VikkiBank",
       "statement_time": [],
       "tl": 1
     },

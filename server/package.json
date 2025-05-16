@@ -1,4 +1,3 @@
-
 {
   "name": "admin-portal-server",
   "version": "1.0.0",
@@ -7,6 +6,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "crawl": "ts-node src/site/index.ts",
     "proxy1": "ts-node src/site/index1.ts",
     "proxy2": "ts-node src/site/index2.ts",
     "proxy3": "ts-node src/site/index3.ts",
@@ -20,9 +20,16 @@
     "build": "tsc",
     "migrate": "ts-node src/database/migration.ts",
     "setup-db": "ts-node src/scripts/setupDb.ts",
-    "clean-db": "ts-node src/scripts/cleanDb.ts"
+    "clean-db": "ts-node src/scripts/cleanDb.ts",
+    "test": "ts-node src/test.ts",
+    "playsonclub": "ts-node src/site/play-son-club/index.ts",
+    "playsonclub12": "ts-node src/site/play-son-club/index12.ts",
+    "playsonclub13": "ts-node src/site/play-son-club/index13.ts",
+    "playsonclub14": "ts-node src/site/play-son-club/index14.ts",
+    "playsonclub15": "ts-node src/site/play-son-club/index15.ts"
   },
   "dependencies": {
+    "@2captcha/captcha-solver": "^1.3.0",
     "axios": "^1.9.0",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
@@ -34,7 +41,10 @@
     "jsonwebtoken": "^9.0.0",
     "node-cron": "^3.0.2",
     "pg": "^8.10.0",
-    "reflect-metadata": "^0.1.13",
+    "puppeteer": "^24.8.2",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "reflect-metadata": "^0.2.2",
     "swagger-jsdoc": "latest",
     "swagger-ui-express": "latest",
     "typeorm": "^0.3.16",
@@ -48,6 +58,7 @@
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^18.16.3",
     "@types/node-cron": "^3.0.11",
+    "@types/reflect-metadata": "^0.1.0",
     "@types/swagger-jsdoc": "latest",
     "@types/swagger-ui-express": "latest",
     "@types/ws": "^8.5.10",

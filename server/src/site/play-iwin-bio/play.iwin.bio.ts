@@ -93,7 +93,7 @@ export class PlayIwinBioSite {
     };
 
     let responseApi = await axios
-      .post(url, data, config)
+      .post(url, data, { ...config, timeout: 10000 })
       .then((response) => {
         return response.data;
       })
@@ -151,7 +151,7 @@ export class PlayIwinBioSite {
     };
 
     let responseApi = await axios
-      .post(url, data, config)
+      .post(url, data, { ...config, timeout: 10000 })
       .then((response) => {
         return response.data;
       })
@@ -191,7 +191,7 @@ export class PlayIwinBioSite {
       },
     };
     let responseApi = await axios
-      .post(url, null, config)
+      .post(url, null, { ...config, timeout: 10000 })
       .then((response) => {
         return response.data;
       })
@@ -245,7 +245,7 @@ export class PlayIwinBioSite {
     };
 
     let responseApi = await axios
-      .post(url, data, { ...config, timeout: 60000 })
+      .post(url, data, { ...config, timeout: 10000 })
       .then((response) => {
         return response.data;
       })
@@ -264,7 +264,11 @@ export class PlayIwinBioSite {
       bank_code: responseApi.rows?.bank_code,
       code: responseApi.rows.code,
     };
-    console.log(`Checking: ${JSON.stringify(response)}`);
+    console.log(
+      `At ${new Date().toLocaleString()} - ${
+          response.bank_name ?? response.bank_code
+        } - ${response.account_holder} - ${response.account_no}`
+    );
     return response;
   }
 }
